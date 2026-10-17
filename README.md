@@ -2,6 +2,12 @@
 
 本仓库用于存放参赛项目的源码、文档与素材。
 
+- GitHub 仓库：https://github.com/jianyilin1024/contest-project
+- 本地目录：`C:\Users\lenovo\Desktop\参赛项目`
+
+> 说明：GitHub 仓库名只允许 ASCII 字母、数字和 `.` `-` `_`，
+> 因此远程仓库名为 `contest-project`，中文名"参赛项目"作为仓库描述与本地目录名保留。
+
 ## 目录结构
 
 ```
@@ -15,11 +21,6 @@
 ## 快速开始
 
 ```bash
-git clone https://github.com/jianyilin1024/参赛项目.git
-cd 参赛项目
+git clone https://github.com/jianyilin1024/contest-project.git
+cd contest-project
 ```
-
-## 说明
-
-- 本仓库由 GitHub CLI 创建，默认私有，可在仓库 Settings 中改为公开。
-- 提交前请确认 `git config user.name` / `user.email` 与 GitHub 账号一致，否则提交不会计入贡献图。
