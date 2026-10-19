@@ -5,10 +5,10 @@
 """
 
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -39,8 +39,9 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
 
     # ---------- 跨域 ----------
-    # 同时放行 localhost 与 127.0.0.1：两种写法在浏览器里是不同来源
-    cors_origins: list[str] = Field(
+    # 同时放行 localhost 与 127.0.0.1：两种写法在浏览器里是不同来源。
+    # NoDecode 表示"不要按 JSON 解析"，否则 CORS_ORIGINS=a,b 这种逗号写法会直接报错。
+    cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: [
             "http://localhost:3000",
             "http://127.0.0.1:3000",
@@ -51,7 +52,8 @@ class Settings(BaseSettings):
     llm_provider: str = "openai_compatible"
     llm_api_key: str = ""
     llm_base_url: str = "https://api.deepseek.com/v1"
-    llm_model: str = "deepseek-chat"
+    # 注意：当前为推理模型，会先输出思考过程再输出回答
+    llm_model: str = "deepseek-flash"
     llm_timeout: int = 60
 
     # ---------- 搜索 ----------

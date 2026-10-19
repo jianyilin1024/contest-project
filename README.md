@@ -143,7 +143,28 @@ pnpm dev
 
 打开 http://localhost:3000 ，首页右上角会显示**后端连接状态**，绿色即表示前后端已打通。
 
-## 五、常用命令
+## 五、接口一览（v0.1）
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/v1/health` | 存活探针 |
+| GET | `/api/v1/health/ready` | 就绪探针（检查数据库与 Redis） |
+| GET | `/api/v1/llm/health` | **大模型连通性自检**，返回可用模型列表（不消耗 token） |
+| POST | `/api/v1/llm/chat` | 一次性对话，返回 `content` / `reasoning` / `usage` |
+| POST | `/api/v1/llm/chat/stream` | 流式对话（SSE），增量区分推理过程与正式回答 |
+
+`/llm/chat` 请求示例：
+
+```bash
+curl -X POST http://localhost:8000/api/v1/llm/chat \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"一句话说明什么是论文摘要"}],"max_tokens":400}'
+```
+
+> 当前模型为**推理模型**：`max_tokens` 太小会被思考过程吃光导致回答为空，
+> 网关默认已设为 2048。详见 [环境配置说明](docs/环境配置说明.md)。
+
+## 六、常用命令
 
 | 目的 | 命令 |
 |---|---|
@@ -156,7 +177,7 @@ pnpm dev
 | 前端构建 | `cd apps/web && pnpm build` |
 | 生产环境启动全栈 | `docker compose -f docker-compose.prod.yml up -d --build` |
 
-## 六、部署
+## 七、部署
 
 完整的服务器采购、初始化、域名解析、HTTPS、自动部署流程见
 [docs/部署说明.md](docs/部署说明.md)。
@@ -169,7 +190,7 @@ cp .env.example .env.prod && vim .env.prod
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-## 七、开发约定
+## 八、开发约定
 
 - **配置只走环境变量**：业务代码里不要出现 `os.environ`，统一从 `app.core.config.settings` 读取。
 - **数据库模型**放在 `app/models/`，统一继承 `app.db.base.Base`，时间字段用 `TimestampMixin`。
@@ -178,7 +199,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 - **提交前**跑一遍 `ruff check .`、`pytest`、`pnpm typecheck`；CI 也会检查。
 - **不要提交** `.env`、密钥、模型 API Key。
 
-## 八、路线图
+## 九、路线图
 
 | 阶段 | 内容 | 状态 |
 |---|---|---|
@@ -191,7 +212,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 | P10–P11 | F6 数据助手 / F7 参考文献助手 | ⏳ |
 | P12 | 联调、部署、演示材料 | ⏳ |
 
-## 九、文档索引
+## 十、文档索引
 
 - [需求分析与实施计划](docs/需求分析与实施计划.md)
 - [环境配置说明](docs/环境配置说明.md)

@@ -1,8 +1,18 @@
 """LLM 供应商工厂。"""
 
 from app.core.config import settings
-from app.services.llm.base import ChatMessage, ChatResult, LLMProvider
-from app.services.llm.openai_compatible import OpenAICompatibleProvider
+from app.services.llm.base import (
+    ChatMessage,
+    ChatResult,
+    LLMError,
+    LLMProvider,
+    StreamDelta,
+)
+from app.services.llm.openai_compatible import (
+    OpenAICompatibleProvider,
+    iter_sse_data,
+    parse_sse_delta,
+)
 
 _PROVIDERS: dict[str, type[LLMProvider]] = {
     "openai_compatible": OpenAICompatibleProvider,
@@ -17,4 +27,13 @@ def get_llm_provider(name: str | None = None) -> LLMProvider:
     return _PROVIDERS[key]()
 
 
-__all__ = ["ChatMessage", "ChatResult", "LLMProvider", "get_llm_provider"]
+__all__ = [
+    "ChatMessage",
+    "ChatResult",
+    "LLMError",
+    "LLMProvider",
+    "StreamDelta",
+    "get_llm_provider",
+    "iter_sse_data",
+    "parse_sse_delta",
+]

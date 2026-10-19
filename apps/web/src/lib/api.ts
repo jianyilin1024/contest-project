@@ -10,13 +10,27 @@ export type HealthResponse = {
   version: string;
 };
 
-export async function fetchHealth(signal?: AbortSignal): Promise<HealthResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/health`, {
-    signal,
-    cache: "no-store",
-  });
+export type LLMHealthResponse = {
+  status: string;
+  provider: string;
+  base_url: string;
+  default_model: string;
+  models: string[];
+  detail?: string | null;
+};
+
+async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, { signal, cache: "no-store" });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
-  return (await response.json()) as HealthResponse;
+  return (await response.json()) as T;
+}
+
+export function fetchHealth(signal?: AbortSignal): Promise<HealthResponse> {
+  return getJson<HealthResponse>("/api/v1/health", signal);
+}
+
+export function fetchLLMHealth(signal?: AbortSignal): Promise<LLMHealthResponse> {
+  return getJson<LLMHealthResponse>("/api/v1/llm/health", signal);
 }

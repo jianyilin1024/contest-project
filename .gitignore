@@ -22,6 +22,14 @@ dist/
 .env.*.local
 !.env.example
 
+# 密钥文件兜底：即使放在仓库里也不会被提交
+APIkey.txt
+*apikey*
+*api-key*
+*.key
+secrets*
+!*example*
+
 # 编辑器 / 系统
 .idea/
 .vscode/

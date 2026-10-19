@@ -2,10 +2,11 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import health
+from app.api.v1.endpoints import health, llm
 
 api_router = APIRouter()
 api_router.include_router(health.router)
+api_router.include_router(llm.router)
 
 # 后续阶段在此追加：
 # api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
