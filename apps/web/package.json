@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:routes": "node verify-routes.mjs"
   },
   "dependencies": {
     "next": "^16.4.2",

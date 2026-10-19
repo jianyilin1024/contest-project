@@ -1,4 +1,4 @@
-# 参赛项目 · AI 赋能的小组作业与论文协作台
+# 大肥鱼小组工作台 · AI 赋能的小组作业与论文协作台
 
 把多人分头写的作业与论文，合成一篇**风格统一、格式规范、引用可靠**的成品。
 
@@ -60,6 +60,30 @@
 ├── docker-compose.yml          开发环境依赖（数据库 + Redis）
 ├── docker-compose.prod.yml     生产环境全栈
 └── .env.example                环境变量模板
+```
+
+### 前端页面结构
+
+| 路由 | 页面 |
+|---|---|
+| `/` | 首页：Hero + 7 个功能入口 + 主链路 + 实时运行状态 |
+| `/features` | 功能分区总览（含三层支撑能力说明） |
+| `/features/merge` | F1 多部分整合 |
+| `/features/tasks` | F2 分工记录 |
+| `/features/transition` | F3 过渡段落生成 |
+| `/features/style` | F4 用语风格统一 |
+| `/features/format` | F5 AI 辅助排版 |
+| `/features/data` | F6 数据助手 |
+| `/features/references` | F7 参考文献助手 |
+| `/about` | 关于项目：定位、技术栈、实施路线 |
+
+功能页由 `app/features/[slug]/page.tsx` 动态生成，功能元数据集中在
+`apps/web/src/lib/features.ts`，新增功能只需在那里加一条记录。
+
+路由冒烟测试（需先启动前端）：
+
+```bash
+cd apps/web && pnpm verify:routes
 ```
 
 ## 四、快速开始

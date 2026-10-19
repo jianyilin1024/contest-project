@@ -1,109 +1,210 @@
-import { ApiStatus } from "@/components/ApiStatus";
+import Link from "next/link";
 
-const FEATURES = [
-  {
-    tag: "F1",
-    title: "多部分整合",
-    desc: "汇总成员各自负责的章节，自动归一标题层级、标记重复内容与冲突点。",
-  },
-  {
-    tag: "F2",
-    title: "分工记录",
-    desc: "任务看板记录谁负责哪一节、进度与截止时间，并统计贡献度。",
-  },
-  {
-    tag: "F3",
-    title: "过渡段落生成",
-    desc: "为相邻章节补写衔接文字，让拼接处读起来是同一篇文章。",
-  },
-  {
-    tag: "F4",
-    title: "用语风格统一",
-    desc: "提取风格基准，逐段改写并给出 diff，术语表全篇统一。",
-  },
-  {
-    tag: "F5",
-    title: "AI 辅助排版",
-    desc: "套用模板生成规范文稿：标题层级、目录页码、参考文献格式。",
-  },
-  {
-    tag: "F6",
-    title: "数据助手",
-    desc: "识别段落中的数据缺口，检索并给出带来源的可核实数据。",
-  },
-  {
-    tag: "F7",
-    title: "参考文献助手",
-    desc: "按概要检索真实文献，去重并生成 GB/T 7714 引用条目。",
-  },
+import { ApiStatus } from "@/components/ApiStatus";
+import { FeatureCard } from "@/components/FeatureCard";
+import { Icon } from "@/components/Icons";
+import { Logo } from "@/components/Logo";
+import { FEATURES } from "@/lib/features";
+
+const FLOW = [
+  { step: "01", title: "各自写作", desc: "成员认领章节，各自提交", icon: "checkSquare" as const },
+  { step: "02", title: "一键整合", desc: "归一结构、标记冲突", icon: "layers" as const },
+  { step: "03", title: "统一风格", desc: "过渡衔接 + 术语统一", icon: "wand" as const },
+  { step: "04", title: "规范导出", desc: "排版 + 引用一键成稿", icon: "layout" as const },
 ];
 
-export default function Home() {
-  return (
-    <main className="mx-auto max-w-5xl px-6 py-14">
-      <header>
-        <p className="text-sm font-medium tracking-wide text-indigo-600">
-          参赛项目 · 工程骨架 v0.1
-        </p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-          AI 赋能的小组作业与论文协作台
-        </h1>
-        <p className="mt-4 max-w-3xl text-base leading-relaxed text-slate-600">
-          把多人分头写的作业与论文，合成一篇风格统一、格式规范、引用可靠的成品。
-          当前仓库处于基础框架阶段，功能模块将按计划逐步接入。
-        </p>
-      </header>
+const STATS = [
+  { value: "7", label: "功能分区" },
+  { value: "3", label: "AI 能力层" },
+  { value: "1", label: "条主链路" },
+  { value: "0", label: "元起步成本" },
+];
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2">
-        <ApiStatus />
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="text-sm font-medium text-slate-700">接口文档</div>
-          <div className="mt-2 text-sm text-slate-500">
-            <a
-              className="text-indigo-600 underline-offset-2 hover:underline"
-              href="http://localhost:8000/docs"
-            >
-              /docs
-            </a>
-            {" · "}
-            <a
-              className="text-indigo-600 underline-offset-2 hover:underline"
-              href="http://localhost:8000/redoc"
-            >
-              /redoc
-            </a>
-            {" · 就绪探针 /api/v1/health/ready"}
+export default function HomePage() {
+  return (
+    <main>
+      {/* ================= Hero ================= */}
+      <section className="relative overflow-hidden">
+        <div className="grid-pattern pointer-events-none absolute inset-0 opacity-40" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-[46rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-300/40 via-violet-300/40 to-cyan-300/40 blur-3xl" />
+
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pt-16 pb-20 sm:px-6 lg:grid-cols-[1.35fr_1fr] lg:items-center lg:pt-24">
+          <div className="animate-fade-up">
+            <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/70 px-3 py-1 text-xs font-medium text-indigo-700 shadow-sm backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+              P1 工程骨架已就绪 · 功能模块开发中
+            </span>
+
+            <h1 className="mt-6 text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl">
+              <span className="text-gradient">大肥鱼小组工作台</span>
+            </h1>
+
+            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
+              把多人分头写的作业与论文，合成一篇
+              <strong className="font-semibold text-slate-800">风格统一</strong>、
+              <strong className="font-semibold text-slate-800">格式规范</strong>、
+              <strong className="font-semibold text-slate-800">引用可靠</strong>
+              的成品。
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                href="/features/merge"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/30"
+              >
+                <Icon name="layers" className="h-4 w-4" />
+                开始整合文稿
+              </Link>
+              <Link
+                href="/features"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400"
+              >
+                <Icon name="grid" className="h-4 w-4" />
+                浏览全部功能
+              </Link>
+            </div>
+
+            <dl className="mt-10 grid max-w-xl grid-cols-2 gap-4 sm:grid-cols-4">
+              {STATS.map((stat) => (
+                <div key={stat.label} className="rounded-xl border border-slate-200 bg-white/70 p-3 backdrop-blur">
+                  <dt className="text-2xl font-extrabold text-slate-900">{stat.value}</dt>
+                  <dd className="mt-0.5 text-xs text-slate-500">{stat.label}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <div className="animate-fade-up [animation-delay:150ms]">
+            <div className="animate-floaty rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-xl shadow-indigo-500/10 backdrop-blur">
+              <div className="flex items-center gap-3">
+                <Logo className="h-12 w-12" id="hero" />
+                <div>
+                  <p className="text-sm font-bold text-slate-900">协作工作台</p>
+                  <p className="text-xs text-slate-500">一站式小组作业流水线</p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-2.5">
+                {FEATURES.slice(0, 3).map((feature) => (
+                  <Link
+                    key={feature.slug}
+                    href={`/features/${feature.slug}`}
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-indigo-300 hover:bg-indigo-50/40"
+                  >
+                    <span
+                      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${feature.accent} text-white`}
+                    >
+                      <Icon name={feature.icon} className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-slate-800">
+                        {feature.title}
+                      </span>
+                      <span className="block truncate text-xs text-slate-500">
+                        {feature.tagline}
+                      </span>
+                    </span>
+                    <Icon name="chevronRight" className="h-4 w-4 shrink-0 text-slate-400" />
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-4">
+                <ApiStatus />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="mt-12">
-        <h2 className="text-lg font-semibold text-slate-800">功能规划</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature) => (
-            <article
-              key={feature.tag}
-              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-300 hover:shadow"
-            >
-              <span className="inline-flex rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
-                {feature.tag}
-              </span>
-              <h3 className="mt-3 text-base font-semibold text-slate-900">
-                {feature.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                {feature.desc}
-              </p>
-            </article>
+      {/* ================= 功能分区 ================= */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">功能分区</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              七个模块覆盖从分工到成稿的完整流程，点击任意卡片即可进入。
+            </p>
+          </div>
+          <Link
+            href="/features"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 transition hover:gap-2.5"
+          >
+            查看总览
+            <Icon name="arrowRight" className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((feature, index) => (
+            <FeatureCard key={feature.slug} feature={feature} index={index} />
           ))}
         </div>
       </section>
 
-      <footer className="mt-14 border-t border-slate-200 pt-6 text-sm text-slate-500">
-        详细方案见仓库 <code className="rounded bg-slate-100 px-1">docs/</code>{" "}
-        目录；环境变量说明见{" "}
-        <code className="rounded bg-slate-100 px-1">docs/环境配置说明.md</code>。
-      </footer>
+      {/* ================= 主链路 ================= */}
+      <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
+        <div className="rounded-3xl border border-slate-200 bg-white/80 p-8 shadow-sm backdrop-blur">
+          <h2 className="text-xl font-bold text-slate-900">主链路：从分工到成稿</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            P5–P9 阶段打通的这条闭环，已经能完整讲出「四人分头写 → 合成一篇规范论文」的故事。
+          </p>
+
+          <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {FLOW.map((item, index) => (
+              <li key={item.step} className="relative">
+                <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-5">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                      <Icon name={item.icon} className="h-4 w-4" />
+                    </span>
+                    <span className="text-xs font-bold text-slate-300">{item.step}</span>
+                  </div>
+                  <h3 className="mt-3 text-sm font-bold text-slate-800">{item.title}</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">{item.desc}</p>
+                </div>
+                {index < FLOW.length - 1 && (
+                  <Icon
+                    name="arrowRight"
+                    className="absolute top-1/2 -right-3 hidden h-5 w-5 -translate-y-1/2 text-slate-300 lg:block"
+                  />
+                )}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ================= 结尾 CTA ================= */}
+      <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 p-10 text-center shadow-xl">
+          <div className="grid-pattern absolute inset-0 opacity-20" />
+          <div className="relative">
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">
+              现在就开始你的第一次协作
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-indigo-50">
+              从「多部分整合」进入，上传各成员的分部文稿，体验从散乱到成稿的全过程。
+            </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <Link
+                href="/features/merge"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-indigo-700 shadow-lg transition hover:-translate-y-0.5"
+              >
+                <Icon name="layers" className="h-4 w-4" />
+                进入多部分整合
+              </Link>
+              <Link
+                href="/about"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/20"
+              >
+                <Icon name="info" className="h-4 w-4" />
+                了解项目
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

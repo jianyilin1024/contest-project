@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { Icon } from "@/components/Icons";
 import { API_BASE_URL, fetchHealth, type HealthResponse } from "@/lib/api";
 
 type State =
@@ -26,34 +27,54 @@ export function ApiStatus() {
     return () => controller.abort();
   }, []);
 
-  const dot =
+  const tone =
     state.kind === "ok"
-      ? "bg-emerald-500"
+      ? { dot: "bg-emerald-500", text: "text-emerald-700", label: "服务正常" }
       : state.kind === "error"
-        ? "bg-rose-500"
-        : "bg-amber-400";
+        ? { dot: "bg-rose-500", text: "text-rose-700", label: "连接失败" }
+        : { dot: "bg-amber-400", text: "text-amber-700", label: "检测中" };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-2">
-        <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
-        <span className="text-sm font-medium text-slate-700">后端连接状态</span>
+    <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+          运行状态
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span
+            className={`h-2 w-2 rounded-full ${tone.dot} ${
+              state.kind === "ok" ? "pulse-ring" : ""
+            }`}
+          />
+          <span className={`text-xs font-semibold ${tone.text}`}>{tone.label}</span>
+        </span>
       </div>
-      <div className="mt-2 text-sm text-slate-500">
-        {state.kind === "loading" && "正在连接后端…"}
-        {state.kind === "ok" && (
-          <>
-            {state.data.app} · {state.data.env} · v{state.data.version}
-          </>
-        )}
-        {state.kind === "error" && (
-          <>
-            连接失败：{state.message}
-            <span className="mt-1 block text-xs text-slate-400">
-              请确认后端已启动（{API_BASE_URL}）
-            </span>
-          </>
-        )}
+
+      <div className="mt-4 flex items-start gap-3">
+        <div className="rounded-xl bg-slate-100 p-2 text-slate-500">
+          <Icon name="sparkles" className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 text-sm">
+          {state.kind === "loading" && (
+            <p className="text-slate-500">正在连接后端服务…</p>
+          )}
+          {state.kind === "ok" && (
+            <>
+              <p className="font-medium text-slate-800">{state.data.app}</p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                环境 {state.data.env} · 版本 v{state.data.version}
+              </p>
+            </>
+          )}
+          {state.kind === "error" && (
+            <>
+              <p className="font-medium text-slate-800">后端未响应</p>
+              <p className="mt-0.5 truncate text-xs text-slate-500">
+                {state.message} · {API_BASE_URL}
+              </p>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
