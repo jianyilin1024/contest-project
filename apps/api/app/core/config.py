@@ -39,7 +39,13 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
 
     # ---------- 跨域 ----------
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    # 同时放行 localhost 与 127.0.0.1：两种写法在浏览器里是不同来源
+    cors_origins: list[str] = Field(
+        default_factory=lambda: [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ]
+    )
 
     # ---------- LLM ----------
     llm_provider: str = "openai_compatible"
