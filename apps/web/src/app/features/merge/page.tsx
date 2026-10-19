@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from "react";
 
 import { Icon } from "@/components/Icons";
 import { MarkdownPreview } from "@/components/MarkdownPreview";
+import { ModeTabs } from "@/components/merge/ModeTabs";
 import { analyzeMerge, exportMerge, type MergeResponse } from "@/lib/api";
 
 const ACCEPT = ".docx,.md,.markdown,.txt";
@@ -127,7 +128,9 @@ export default function MergePage() {
         <span className="font-medium text-slate-700">多部分整合</span>
       </nav>
 
-      <header className="mt-6 flex flex-wrap items-start gap-5">
+      <ModeTabs active="multi" />
+
+      <header className="mt-8 flex flex-wrap items-start gap-5">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 text-white shadow-lg shadow-indigo-500/25">
           <Icon name="layers" className="h-7 w-7" />
         </div>

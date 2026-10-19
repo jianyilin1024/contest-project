@@ -87,9 +87,11 @@ def parse_text(text: str, filename: str, author: str = "") -> ParsedDocument:
 
         md = _MD_HEADING.match(line)
         if md:
+            raw = md.group(2).strip()
             current = Node(
                 level=len(md.group(1)),
-                title=strip_numbering(md.group(2).strip()),
+                title=strip_numbering(raw),
+                raw_title=raw,
                 source=filename,
             )
             nodes.append(current)
@@ -97,7 +99,10 @@ def parse_text(text: str, filename: str, author: str = "") -> ParsedDocument:
 
         detected = detect_numbered_heading(line)
         if detected is not None:
-            current = Node(level=detected, title=strip_numbering(line.strip()), source=filename)
+            raw = line.strip()
+            current = Node(
+                level=detected, title=strip_numbering(raw), raw_title=raw, source=filename
+            )
             nodes.append(current)
             continue
 
@@ -180,7 +185,9 @@ def parse_docx(data: bytes, filename: str, author: str = "") -> ParsedDocument:
             if level is None:
                 level = detect_numbered_heading(text)
             if level is not None:
-                current = Node(level=level, title=strip_numbering(text), source=filename)
+                current = Node(
+                    level=level, title=strip_numbering(text), raw_title=text, source=filename
+                )
                 nodes.append(current)
             else:
                 current.blocks.append(Block("paragraph", text))

@@ -32,6 +32,8 @@ class Node:
     blocks: list[Block] = field(default_factory=list)
     number: str = ""
     source: str = ""
+    # 标题在原文里的样子（含编号），版式识别需要它
+    raw_title: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -39,6 +41,7 @@ class Node:
             "title": self.title,
             "number": self.number,
             "source": self.source,
+            "raw_title": self.raw_title,
             "blocks": [b.to_dict() for b in self.blocks],
         }
 

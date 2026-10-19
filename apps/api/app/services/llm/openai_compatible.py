@@ -5,6 +5,8 @@ DeepSeek、通义千问、智谱 GLM、OpenAI 均提供 /chat/completions 接口
 """
 
 import json
+import logging
+import re
 from collections.abc import AsyncIterator, Iterable, Iterator
 from typing import Any
 
@@ -19,8 +21,37 @@ from app.services.llm.base import (
     StreamDelta,
 )
 
+logger = logging.getLogger(__name__)
+
 # 推理模型会先输出思考内容，默认额度需要留足余量
-DEFAULT_MAX_TOKENS = 2048
+DEFAULT_MAX_TOKENS = 4096
+
+_JSON_FENCE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.DOTALL)
+
+
+def extract_json_object(text: str) -> dict[str, Any] | None:
+    """从模型输出里抽取第一个 JSON 对象，容忍 Markdown 代码块与前后废话。"""
+    if not text or not text.strip():
+        return None
+    candidates: list[str] = [text.strip()]
+    candidates.extend(match.group(1) for match in _JSON_FENCE.finditer(text))
+    for candidate in candidates:
+        try:
+            data = json.loads(candidate)
+            if isinstance(data, dict):
+                return data
+        except json.JSONDecodeError:
+            pass
+        start = candidate.find("{")
+        end = candidate.rfind("}")
+        if start != -1 and end > start:
+            try:
+                data = json.loads(candidate[start : end + 1])
+                if isinstance(data, dict):
+                    return data
+            except json.JSONDecodeError:
+                continue
+    return None
 
 
 def iter_sse_data(lines: Iterable[str]) -> Iterator[str]:
@@ -163,12 +194,31 @@ class OpenAICompatibleProvider(LLMProvider):
             "你必须只输出一个 JSON 对象，不要包含任何解释或 Markdown 代码块，"
             "且严格符合以下 JSON Schema：\n" + json.dumps(schema, ensure_ascii=False)
         )
+        prepared = [ChatMessage("system", instruction), *messages]
+        budget = int(kwargs.get("max_tokens") or DEFAULT_MAX_TOKENS)
+
+        # 第一次：启用 response_format，让服务端保证 JSON
         result = await self.chat(
-            [ChatMessage("system", instruction), *messages],
-            response_format={"type": "json_object"},
-            **kwargs,
+            prepared, response_format={"type": "json_object"}, **kwargs
         )
-        try:
-            return json.loads(result.content)
-        except json.JSONDecodeError as exc:
-            raise LLMError(f"模型未返回合法 JSON: {result.content[:200]}") from exc
+        parsed = extract_json_object(result.content)
+        if parsed is not None:
+            return parsed
+
+        # 降级重试：推理模型在额度被思考吃光时会返回空 content，
+        # 这里去掉 response_format 并加倍额度，再从文本里抽取 JSON。
+        logger.warning(
+            "结构化输出失败（content %d 字符，推理 %d 字符），加倍额度重试",
+            len(result.content),
+            len(result.reasoning),
+        )
+        retry_kwargs = {**kwargs, "max_tokens": budget * 2}
+        result = await self.chat(prepared, **retry_kwargs)
+        parsed = extract_json_object(result.content)
+        if parsed is not None:
+            return parsed
+
+        raise LLMError(
+            f"模型未返回合法 JSON（content {len(result.content)} 字符，"
+            f"推理 {len(result.reasoning)} 字符）: {result.content[:200]}"
+        )

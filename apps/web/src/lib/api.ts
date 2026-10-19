@@ -147,3 +147,132 @@ export async function exportMerge(
   }
   return await response.blob();
 }
+/* ==================== 单文档 AI 分析 ==================== */
+
+export type AnalysisSegment = {
+  id: number;
+  section: string;
+  text: string;
+  chars: number;
+  features: Record<string, number>;
+};
+
+export type AuthorshipGroup = {
+  id: string;
+  label: string;
+  features: string[];
+  units: number;
+  characters: number;
+  avg_sentence: number;
+  unit_ids: number[];
+};
+
+export type AuthorshipAssignment = {
+  unit_id: number;
+  group_id: string;
+  confidence: number;
+  reason: string;
+  section: string;
+  preview: string;
+};
+
+export type AuthorshipResult = {
+  heterogeneity: string;
+  conclusion: string;
+  groups: AuthorshipGroup[];
+  assignments: AuthorshipAssignment[];
+};
+
+export type StyleIssue = {
+  type: string;
+  title: string;
+  detail: string;
+  examples: string[];
+  suggestion: string;
+};
+
+export type StyleAdvice = {
+  canonical_style: string;
+  issues: StyleIssue[];
+  plan: string[];
+};
+
+export type LayoutConvention = {
+  aspect: string;
+  observation: string;
+  consistent: boolean;
+  suggestion: string;
+};
+
+export type LayoutResult = {
+  summary: string;
+  conventions: LayoutConvention[];
+  facts: Record<string, unknown>;
+};
+
+export type SingleAnalysisResponse = {
+  title: string;
+  filename: string;
+  stats: {
+    sections: number;
+    paragraphs: number;
+    characters: number;
+    units_total: number;
+    units_analyzed: number;
+  };
+  authorship: AuthorshipResult;
+  style: StyleAdvice;
+  layout: LayoutResult;
+  segments: AnalysisSegment[];
+  model: string;
+  elapsed_ms: number;
+};
+
+export type UnifyResponse = {
+  markdown: string;
+  rewritten: number;
+  failed: number;
+  notes: string[];
+};
+
+export async function analyzeSingle(
+  file: File,
+  title: string,
+  signal?: AbortSignal,
+): Promise<SingleAnalysisResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("title", title);
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/analysis/single`, {
+    method: "POST",
+    body: form,
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as SingleAnalysisResponse;
+}
+
+export async function unifyDocument(
+  segments: { id: number; section: string; text: string; group_id: string }[],
+  styleBrief: string,
+  title: string,
+  targetGroup: string | null,
+): Promise<UnifyResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/analysis/unify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title,
+      style_brief: styleBrief,
+      segments,
+      target_group: targetGroup,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as UnifyResponse;
+}
