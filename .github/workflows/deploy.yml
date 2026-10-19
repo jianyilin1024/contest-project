@@ -1,0 +1,32 @@
+name: Deploy
+
+# 推送到 main 后自动部署到阿里云服务器。
+# 需在仓库 Settings -> Secrets and variables -> Actions 配置：
+#   SSH_HOST      服务器公网 IP
+#   SSH_USER      部署用户（deploy）
+#   SSH_KEY       部署私钥
+#   SSH_PORT      SSH 端口（可选，默认 22）
+# 未配置这些 Secret 时该工作流会跳过，不会报错。
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: 部署到服务器
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SSH_HOST != '' }}
+    steps:
+      - name: 通过 SSH 执行远程部署
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd ~/contest-project
+            bash infra/scripts/deploy.sh

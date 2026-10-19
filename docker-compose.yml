@@ -1,0 +1,45 @@
+# 开发环境：只启动依赖组件（数据库 + Redis）
+# 前后端在宿主机本地运行，享受最快热重载。
+#   docker compose up -d         启动依赖
+#   docker compose down          停止依赖
+#   docker compose down -v       停止并清空数据（慎用）
+name: contest-dev
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: contest-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-contest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-contest_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-contest}
+      TZ: Asia/Shanghai
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-contest} -d ${POSTGRES_DB:-contest}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: contest-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
+  redis_data:
