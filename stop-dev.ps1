@@ -1,4 +1,4 @@
-# 停止本地开发环境
+﻿# 停止本地开发环境
 # 用法：在仓库根目录执行  .\stop-dev.ps1
 
 $root = $PSScriptRoot
