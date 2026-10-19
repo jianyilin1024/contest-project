@@ -22,6 +22,8 @@ export type Feature = {
   capabilities: string[];
   input: string;
   output: string;
+  /** 是否已有独立实现的页面（有则不再走通用的 [slug] 占位页） */
+  dedicated?: boolean;
 };
 
 export const FEATURES: Feature[] = [
@@ -35,7 +37,8 @@ export const FEATURES: Feature[] = [
     icon: "layers",
     accent: "from-indigo-500 to-blue-500",
     stage: "P5",
-    status: "planned",
+    status: "done",
+    dedicated: true,
     capabilities: [
       "支持 docx / Markdown / 纯文本导入",
       "自动识别并归一标题层级与编号",

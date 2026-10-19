@@ -2,13 +2,13 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import health, llm
+from app.api.v1.endpoints import health, llm, merge
 
 api_router = APIRouter()
 api_router.include_router(health.router)
 api_router.include_router(llm.router)
+api_router.include_router(merge.router)
 
 # 后续阶段在此追加：
-# api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
-# api_router.include_router(sections.router, prefix="/sections", tags=["sections"])
+# api_router.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 # api_router.include_router(references.router, prefix="/references", tags=["references"])

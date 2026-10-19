@@ -8,7 +8,8 @@ import { FEATURES, FEATURE_MAP, STATUS_LABEL } from "@/lib/features";
 type PageProps = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
-  return FEATURES.map((feature) => ({ slug: feature.slug }));
+  // 已有独立实现的模块（如 F1 多部分整合）不走这个通用占位页
+  return FEATURES.filter((feature) => !feature.dedicated).map((feature) => ({ slug: feature.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
