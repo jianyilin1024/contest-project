@@ -118,7 +118,8 @@ export const FEATURES: Feature[] = [
     icon: "layout",
     accent: "from-sky-500 to-cyan-500",
     stage: "P9",
-    status: "planned",
+    status: "done",
+    dedicated: true,
     capabilities: [
       "模板化排版（标题层级 / 字体 / 行距）",
       "自动生成目录与页码",

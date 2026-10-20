@@ -276,3 +276,64 @@ export async function unifyDocument(
   }
   return (await response.json()) as UnifyResponse;
 }
+/* ==================== F5 排版 ==================== */
+
+export type TemplateInfo = {
+  key: string;
+  name: string;
+  description: string;
+  toc: boolean;
+  numbering: boolean;
+  page_numbers: boolean;
+};
+
+export type ReferenceEntry = {
+  index: number;
+  original: string;
+  formatted: string;
+  type: string;
+  note: string;
+};
+
+export type ReferenceResponse = {
+  found: boolean;
+  heading: string;
+  entries: ReferenceEntry[];
+  markdown: string;
+  notes: string[];
+};
+
+export async function fetchTemplates(signal?: AbortSignal): Promise<TemplateInfo[]> {
+  return getJson<TemplateInfo[]>("/api/v1/format/templates", signal);
+}
+
+export async function renderDocx(payload: {
+  markdown: string;
+  title: string;
+  template: string;
+  toc: boolean;
+  numbering: boolean;
+  page_numbers: boolean;
+}): Promise<Blob> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/format/docx`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return await response.blob();
+}
+
+export async function formatReferences(markdown: string): Promise<ReferenceResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/format/references`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ markdown }),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as ReferenceResponse;
+}

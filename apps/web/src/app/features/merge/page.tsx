@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 
 import { Icon } from "@/components/Icons";
@@ -37,6 +38,7 @@ export default function MergePage() {
   const [dragging, setDragging] = useState(false);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const addFiles = useCallback((fileList: FileList | null) => {
     if (!fileList) return;
@@ -285,7 +287,18 @@ export default function MergePage() {
         )}
       </section>
 
-      {result && <MergeResult result={result} onDownload={download} onCopy={copy} copied={copied} />}
+      {result && (
+        <MergeResult
+          result={result}
+          onDownload={download}
+          onCopy={copy}
+          copied={copied}
+          onFormat={() => {
+            window.sessionStorage.setItem("format:markdown", result.markdown);
+            router.push("/features/format");
+          }}
+        />
+      )}
     </main>
   );
 }
@@ -297,11 +310,13 @@ function MergeResult({
   onDownload,
   onCopy,
   copied,
+  onFormat,
 }: {
   result: MergeResponse;
   onDownload: (format: "md" | "docx") => void;
   onCopy: () => void;
   copied: boolean;
+  onFormat: () => void;
 }) {
   const { stats } = result;
   const cards = [
@@ -452,9 +467,17 @@ function MergeResult({
             <button
               type="button"
               onClick={() => onDownload("docx")}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-800"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
             >
-              下载 .docx
+              快速导出 .docx
+            </button>
+            <button
+              type="button"
+              onClick={onFormat}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-sky-600 to-cyan-600 px-3 py-1.5 text-xs font-medium text-white transition hover:from-sky-500 hover:to-cyan-500"
+            >
+              <Icon name="layout" className="h-3.5 w-3.5" />
+              去排版
             </button>
           </div>
         </div>

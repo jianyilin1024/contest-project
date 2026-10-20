@@ -152,6 +152,13 @@ pnpm dev
 | GET | `/api/v1/llm/health` | **大模型连通性自检**，返回可用模型列表（不消耗 token） |
 | POST | `/api/v1/llm/chat` | 一次性对话，返回 `content` / `reasoning` / `usage` |
 | POST | `/api/v1/llm/chat/stream` | 流式对话（SSE），增量区分推理过程与正式回答 |
+| POST | `/api/v1/merge/analyze` | **F1 多文档整合**：上传多份文稿 → 合并稿 + 目录 + 重复/术语报告 |
+| POST | `/api/v1/merge/export` | 合并稿导出 md / docx |
+| POST | `/api/v1/analysis/single` | **单文档 AI 分析**：文风异质性 + 归并建议 + 版式识别 |
+| POST | `/api/v1/analysis/unify` | 按建议生成文风归并稿 |
+| GET | `/api/v1/format/templates` | **F5 排版**模板列表 |
+| POST | `/api/v1/format/docx` | 按模板渲染 docx（自动编号 / 目录 / 页码） |
+| POST | `/api/v1/format/references` | AI 规范化参考文献（GB/T 7714-2015） |
 
 `/llm/chat` 请求示例：
 
@@ -206,9 +213,13 @@ docker compose -f docker-compose.prod.yml up -d --build
 | P0 | 需求分析与实施计划 | ✅ |
 | P1 | 工程骨架（本阶段） | ✅ |
 | P2 | 数据模型 + 认证 + 项目/成员 | ⏳ |
-| P3 | 文档导入与结构化解析 | ⏳ |
-| P4 | 大模型网关（流式、结构化输出） | ⏳ |
-| P5–P9 | F1 整合 / F2 分工 / F3 过渡 / F4 风格 / F5 排版 | ⏳ |
+| P3 | 文档导入与结构化解析 | ✅ |
+| P4 | 大模型网关（流式、结构化输出、降级重试） | ✅ |
+| P5 | F1 多部分整合（含单文档 AI 文风分析） | ✅ |
+| P6 | F2 分工记录 | ⏳ |
+| P7 | F3 过渡段落生成 | ⏳ |
+| P8 | F4 用语风格统一（建议与归并稿已具备，逐句 diff 待做） | 🟡 |
+| P9 | F5 AI 辅助排版 | ✅ |
 | P10–P11 | F6 数据助手 / F7 参考文献助手 | ⏳ |
 | P12 | 联调、部署、演示材料 | ⏳ |
 
