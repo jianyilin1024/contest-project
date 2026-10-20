@@ -1,7 +1,14 @@
 /** 后端接口地址与统一请求封装。 */
 
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+/**
+ * 后端地址。
+ * - 生产：留空，走同源（Nginx 把 /api/ 反代到后端），镜像因此与域名解耦；
+ * - 本地：在 apps/web/.env.local 里写 http://localhost:8000。
+ */
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+
+/** 供界面展示用的人类可读地址。 */
+export const API_BASE_LABEL = API_BASE_URL || "同源 /api";
 
 export type HealthResponse = {
   status: string;

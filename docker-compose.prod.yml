@@ -1,12 +1,33 @@
 # 生产环境：数据库 + Redis + 后端 + 前端 + Nginx 反向代理
-#   docker compose -f docker-compose.prod.yml up -d --build
-# 前置条件：服务器已装 Docker，已把 .env.prod 配好，域名已解析到本机。
+#
+# 两种启动方式：
+#   1) 用 CI 构建好的镜像（推荐，服务器不需要构建，2G 内存也够）
+#      docker compose -f docker-compose.prod.yml pull
+#      docker compose -f docker-compose.prod.yml up -d --no-build
+#   2) 在服务器本地构建（首次较慢，需要 2G swap）
+#      docker compose -f docker-compose.prod.yml up -d --build
+#
+# 内存上限按 2 核 2G 机器设定，加总约 1.55G，留出系统余量。
+
 name: contest-prod
 
 services:
   db:
     image: pgvector/pgvector:pg16
     restart: always
+    command:
+      - postgres
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=64MB
+      - -c
+      - max_connections=50
+      - -c
+      - effective_cache_size=384MB
+    mem_limit: 512m
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -24,7 +45,15 @@ services:
   redis:
     image: redis:7-alpine
     restart: always
-    command: ["redis-server", "--appendonly", "yes"]
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 64mb
+      - --maxmemory-policy
+      - allkeys-lru
+    mem_limit: 96m
     volumes:
       - redis_data:/data
     healthcheck:
@@ -35,9 +64,11 @@ services:
     networks: [backend]
 
   api:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER:-jianyilin1024}/contest-api:${TAG:-latest}
     build:
       context: ./apps/api
     restart: always
+    mem_limit: 448m
     env_file: .env.prod
     environment:
       POSTGRES_HOST: db
@@ -50,13 +81,15 @@ services:
     networks: [backend]
 
   web:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER:-jianyilin1024}/contest-web:${TAG:-latest}
     build:
       context: ./apps/web
       args:
-        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
     restart: always
+    mem_limit: 448m
     environment:
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
     depends_on:
       - api
     networks: [backend]
@@ -64,6 +97,7 @@ services:
   nginx:
     image: nginx:1.27-alpine
     restart: always
+    mem_limit: 48m
     ports:
       - "80:80"
       - "443:443"

@@ -8,9 +8,12 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
-ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+# 默认留空 = 走同源，镜像不绑定任何域名
+ARG NEXT_PUBLIC_API_BASE_URL=""
+# 限制 Node 堆上限：2G 内存的机器上本地构建时不会因默认堆策略被 OOM 杀掉
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL} \
-    NEXT_TELEMETRY_DISABLED=1
+    NEXT_TELEMETRY_DISABLED=1 \
+    NODE_OPTIONS=--max-old-space-size=1024
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build

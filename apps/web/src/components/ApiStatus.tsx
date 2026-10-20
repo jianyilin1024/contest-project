@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Icon } from "@/components/Icons";
 import {
-  API_BASE_URL,
+  API_BASE_LABEL,
   fetchHealth,
   fetchLLMHealth,
   type HealthResponse,
@@ -105,7 +105,7 @@ export function ApiStatus() {
           {backend.kind === "loading" && "正在连接…"}
           {backend.kind === "ok" &&
             `${backend.data.app} · 环境 ${backend.data.env} · v${backend.data.version}`}
-          {backend.kind === "error" && `${backend.message} · ${API_BASE_URL}`}
+          {backend.kind === "error" && `${backend.message} · ${API_BASE_LABEL}`}
         </StatusRow>
 
         <StatusRow
