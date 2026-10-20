@@ -337,3 +337,78 @@ export async function formatReferences(markdown: string): Promise<ReferenceRespo
   }
   return (await response.json()) as ReferenceResponse;
 }
+/* ==================== F3 过渡段落 ==================== */
+
+export type TransitionBlock = {
+  id: number;
+  kind: string;
+  level: number;
+  text: string;
+};
+
+export type TransitionOption = {
+  id: string;
+  label: string;
+  text: string;
+  overlap: number;
+  duplicate: boolean;
+};
+
+export type TransitionBoundary = {
+  id: string;
+  after_block_id: number;
+  before_block_id: number;
+  section_from: string;
+  section_to: string;
+  context_before: string;
+  context_after: string;
+  needs: boolean;
+  reason: string;
+  confidence: number;
+  options: TransitionOption[];
+};
+
+export type TransitionResponse = {
+  title: string;
+  blocks: TransitionBlock[];
+  boundaries: TransitionBoundary[];
+  stats: { candidates: number; needed: number; skipped: number };
+  elapsed_ms: number;
+};
+
+export type ApplyResult = {
+  markdown: string;
+  inserted: number;
+};
+
+export async function analyzeTransitions(
+  markdown: string,
+  title: string,
+  signal?: AbortSignal,
+): Promise<TransitionResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/transition/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ markdown, title }),
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as TransitionResponse;
+}
+
+export async function applyTransitions(
+  blocks: TransitionBlock[],
+  insertions: { after_block_id: number; text: string }[],
+): Promise<ApplyResult> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/transition/apply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ blocks, insertions }),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as ApplyResult;
+}

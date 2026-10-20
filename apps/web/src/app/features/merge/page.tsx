@@ -297,6 +297,10 @@ export default function MergePage() {
             window.sessionStorage.setItem("format:markdown", result.markdown);
             router.push("/features/format");
           }}
+          onTransition={() => {
+            window.sessionStorage.setItem("transition:markdown", result.markdown);
+            router.push("/features/transition");
+          }}
         />
       )}
     </main>
@@ -311,12 +315,14 @@ function MergeResult({
   onCopy,
   copied,
   onFormat,
+  onTransition,
 }: {
   result: MergeResponse;
   onDownload: (format: "md" | "docx") => void;
   onCopy: () => void;
   copied: boolean;
   onFormat: () => void;
+  onTransition: () => void;
 }) {
   const { stats } = result;
   const cards = [
@@ -470,6 +476,14 @@ function MergeResult({
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
             >
               快速导出 .docx
+            </button>
+            <button
+              type="button"
+              onClick={onTransition}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 transition hover:border-amber-400"
+            >
+              <Icon name="link" className="h-3.5 w-3.5" />
+              去过渡
             </button>
             <button
               type="button"

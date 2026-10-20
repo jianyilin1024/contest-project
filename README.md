@@ -159,6 +159,8 @@ pnpm dev
 | GET | `/api/v1/format/templates` | **F5 排版**模板列表 |
 | POST | `/api/v1/format/docx` | 按模板渲染 docx（自动编号 / 目录 / 页码） |
 | POST | `/api/v1/format/references` | AI 规范化参考文献（GB/T 7714-2015） |
+| POST | `/api/v1/transition/analyze` | **F3 过渡段落**：识别章节断层 + 生成多备选 |
+| POST | `/api/v1/transition/apply` | 按勾选把过渡段插入文档，返回 Markdown |
 
 `/llm/chat` 请求示例：
 
@@ -217,7 +219,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 | P4 | 大模型网关（流式、结构化输出、降级重试） | ✅ |
 | P5 | F1 多部分整合（含单文档 AI 文风分析） | ✅ |
 | P6 | F2 分工记录 | ⏳ |
-| P7 | F3 过渡段落生成 | ⏳ |
+| P7 | F3 过渡段落生成（AI 定位 + 多备选 + 勾选式预览） | ✅ |
 | P8 | F4 用语风格统一（建议与归并稿已具备，逐句 diff 待做） | 🟡 |
 | P9 | F5 AI 辅助排版 | ✅ |
 | P10–P11 | F6 数据助手 / F7 参考文献助手 | ⏳ |

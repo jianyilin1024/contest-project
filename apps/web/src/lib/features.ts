@@ -78,7 +78,8 @@ export const FEATURES: Feature[] = [
     icon: "link",
     accent: "from-amber-500 to-orange-500",
     stage: "P7",
-    status: "planned",
+    status: "done",
+    dedicated: true,
     capabilities: [
       "识别章节之间的语义断点",
       "生成 1–2 段衔接文字",
