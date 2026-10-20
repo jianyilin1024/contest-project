@@ -1,25 +1,42 @@
 name: Deploy
 
-# 推送到 main 后自动部署到阿里云服务器。
-# 需在仓库 Settings -> Secrets and variables -> Actions 配置：
-#   SSH_HOST      服务器公网 IP
-#   SSH_USER      部署用户（deploy）
-#   SSH_KEY       部署私钥
-#   SSH_PORT      SSH 端口（可选，默认 22）
-# 未配置这些 Secret 时该工作流会跳过，不会报错。
+# 默认只在手动触发时运行（Actions 页面 → Run workflow）。
+# 原因：服务器尚未就绪，若跟随 push 触发，每次提交都会产生一条失败通知。
+# 服务器配置好之后，把下面的 push 触发器取消注释即可恢复自动部署。
+#
+# 需在 Settings → Secrets and variables → Actions 配置：
+#   SSH_HOST  服务器公网 IP
+#   SSH_USER  部署用户（如 deploy）
+#   SSH_KEY   部署私钥
+#   SSH_PORT  SSH 端口（可选，默认 22）
+#
+# 注意：secrets 上下文不能用在 jobs.<job_id>.if 里（会导致整个工作流解析失败），
+# 因此"是否配置了密钥"的判断放在首步脚本中，用 step output 传递。
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+  # push:
+  #   branches: [main]
 
 jobs:
   deploy:
     name: 部署到服务器
     runs-on: ubuntu-latest
-    if: ${{ secrets.SSH_HOST != '' }}
     steps:
+      - name: 检查部署密钥是否已配置
+        id: guard
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          if [ -z "$SSH_HOST" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::未配置 SSH_HOST 密钥，跳过部署（这是预期行为，不是失败）"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: 通过 SSH 执行远程部署
+        if: steps.guard.outputs.ready == 'true'
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
