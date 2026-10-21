@@ -10,6 +10,18 @@ class BlockOut(BaseModel):
     text: str
 
 
+class DeAIInfo(BaseModel):
+    """去 AI 味的处理结果。"""
+
+    before_score: int = 100
+    after_score: int = 100
+    issues: list[str] = Field(default_factory=list)
+    applied: bool = False
+    original: str | None = None
+    remaining: list[str] = Field(default_factory=list)
+    rejected: list[str] = Field(default_factory=list)
+
+
 class TransitionOption(BaseModel):
     id: str
     label: str
@@ -17,6 +29,7 @@ class TransitionOption(BaseModel):
     # 与下一节开头的最长公共子串长度；>=12 视为复述
     overlap: int = 0
     duplicate: bool = False
+    deai: DeAIInfo | None = None
 
 
 class BoundaryOut(BaseModel):
@@ -36,6 +49,8 @@ class BoundaryOut(BaseModel):
 class TransitionRequest(BaseModel):
     markdown: str = Field(min_length=1)
     title: str = ""
+    # 是否对生成的备选做去 AI 味处理（默认开）
+    deai: bool = True
 
 
 class TransitionResponse(BaseModel):

@@ -353,12 +353,23 @@ export type TransitionBlock = {
   text: string;
 };
 
+export type DeAIInfo = {
+  before_score: number;
+  after_score: number;
+  issues: string[];
+  applied: boolean;
+  original: string | null;
+  remaining: string[];
+  rejected: string[];
+};
+
 export type TransitionOption = {
   id: string;
   label: string;
   text: string;
   overlap: number;
   duplicate: boolean;
+  deai?: DeAIInfo | null;
 };
 
 export type TransitionBoundary = {
@@ -391,12 +402,13 @@ export type ApplyResult = {
 export async function analyzeTransitions(
   markdown: string,
   title: string,
+  deai = true,
   signal?: AbortSignal,
 ): Promise<TransitionResponse> {
   const response = await fetch(`${API_BASE_URL}/api/v1/transition/analyze`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ markdown, title }),
+    body: JSON.stringify({ markdown, title, deai }),
     signal,
   });
   if (!response.ok) {

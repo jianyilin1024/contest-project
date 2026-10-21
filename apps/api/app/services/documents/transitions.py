@@ -7,11 +7,23 @@
 这样既不会漏检结构性断层，也不会对每一段都盲目调模型。
 """
 
+import logging
 import re
 from dataclasses import dataclass
 from typing import Any
 
-from app.services.llm import ChatMessage, LLMProvider
+from app.services.documents.deai import (
+    DEAI_PROMPT,
+    DEAI_SCHEMA,
+    build_targets,
+    conservation_check,
+)
+from app.services.documents.deai import (
+    analyze as deai_analyze,
+)
+from app.services.llm import ChatMessage, LLMError, LLMProvider
+
+logger = logging.getLogger(__name__)
 
 MAX_BOUNDARIES = 10
 CLIP_BEFORE = 160
@@ -258,6 +270,73 @@ async def analyze_transitions(
             }
         )
     return merged
+
+
+async def apply_deai(boundaries: list[dict], provider: LLMProvider) -> None:
+    """对生成的备选做去 AI 味处理（原地修改 options）。
+
+    流程：体检 → 一次性批量改写命中的备选 → 信息守恒校验 → 重新体检；
+    任何一步不通过就保留原文，绝不为了"去味"牺牲事实。
+    """
+    targets: list[dict] = []
+    for boundary in boundaries:
+        for option in boundary["options"]:
+            report = deai_analyze(option["text"])
+            option["deai"] = {
+                "before_score": report.score,
+                "after_score": report.score,
+                "issues": [issue.label for issue in report.issues],
+                "applied": False,
+                "original": None,
+            }
+            if report.issues:
+                targets.append(
+                    {
+                        "id": option["id"],
+                        "text": option["text"],
+                        "issues": [issue.to_dict() for issue in report.issues],
+                    }
+                )
+
+    if not targets:
+        return
+
+    messages = [
+        ChatMessage("system", DEAI_PROMPT),
+        ChatMessage("user", f"共 {len(targets)} 段需要处理：\n\n{build_targets(targets)}"),
+    ]
+    try:
+        result = await provider.structured(messages, DEAI_SCHEMA, max_tokens=4000)
+    except LLMError as exc:
+        logger.warning("去味改写失败，保留原文: %s", exc)
+        return
+
+    rewritten = {
+        str(item.get("id")): str(item.get("text") or "").strip()
+        for item in (result.get("rewrites") or [])
+    }
+
+    for boundary in boundaries:
+        for option in boundary["options"]:
+            info = option.get("deai")
+            if not info or not info["issues"]:
+                continue
+            candidate = rewritten.get(option["id"], "")
+            if not candidate:
+                continue
+            ok, problems = conservation_check(option["text"], candidate)
+            if not ok:
+                info["rejected"] = problems
+                continue
+            after = deai_analyze(candidate)
+            if after.score <= info["before_score"]:
+                info["rejected"] = ["改写后仍存在同类痕迹，已保留原文"]
+                continue
+            info["original"] = option["text"]
+            info["after_score"] = after.score
+            info["applied"] = True
+            info["remaining"] = [issue.label for issue in after.issues]
+            option["text"] = candidate
 
 
 def assemble_markdown(blocks: list[dict], insertions: list[dict]) -> str:

@@ -59,6 +59,7 @@ export default function TransitionPage() {
   const [loading, setLoading] = useState(false);
   const [applying, setApplying] = useState(false);
   const [error, setError] = useState("");
+  const [deai, setDeai] = useState(true);
 
   useEffect(() => {
     const stashed = window.sessionStorage.getItem("transition:markdown");
@@ -120,7 +121,7 @@ export default function TransitionPage() {
     setResult(null);
     setPreview("");
     try {
-      const data = await analyzeTransitions(markdown, title);
+      const data = await analyzeTransitions(markdown, title, deai);
       const initial: Record<string, Selection> = {};
       for (const boundary of data.boundaries) {
         if (!boundary.needs || boundary.options.length === 0) continue;
@@ -185,6 +186,20 @@ export default function TransitionPage() {
   const boundaryById = (blockId: number): TransitionBoundary | undefined =>
     neededBoundaries.find((item) => item.after_block_id === blockId);
 
+  const deaiStats = useMemo(() => {
+    let total = 0;
+    let flagged = 0;
+    let applied = 0;
+    for (const boundary of neededBoundaries) {
+      for (const option of boundary.options) {
+        total += 1;
+        if (option.deai?.issues?.length) flagged += 1;
+        if (option.deai?.applied) applied += 1;
+      }
+    }
+    return { total, flagged, applied };
+  }, [neededBoundaries]);
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <nav className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
@@ -238,6 +253,15 @@ export default function TransitionPage() {
               className="mt-1 w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
             />
           </label>
+          <label className="flex cursor-pointer items-center gap-2 pb-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={deai}
+              onChange={(event) => setDeai(event.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-400"
+            />
+            生成后自动去 AI 味
+          </label>
           <button
             type="button"
             onClick={run}
@@ -276,6 +300,21 @@ export default function TransitionPage() {
               <span className="text-slate-500">
                 已选 <strong className="text-emerald-600">{insertions.length}</strong> 处
               </span>
+              {deai && (
+                <span className="text-slate-500" title="对所有生成的备选做 AI 味体检">
+                  去味体检 <strong className="text-slate-900">{deaiStats.total}</strong> 条
+                  {deaiStats.flagged > 0 && (
+                    <>
+                      {" "}· 命中 <strong className="text-amber-600">{deaiStats.flagged}</strong>
+                    </>
+                  )}
+                  {deaiStats.applied > 0 && (
+                    <>
+                      {" "}· 已改 <strong className="text-emerald-600">{deaiStats.applied}</strong>
+                    </>
+                  )}
+                </span>
+              )}
               <span className="text-slate-400">{(result.elapsed_ms / 1000).toFixed(1)}s</span>
             </div>
             <div className="ml-auto flex gap-1 rounded-lg bg-slate-100 p-1">
@@ -416,8 +455,31 @@ function TransitionCard({
                       与下文重复度较高
                     </span>
                   )}
+                  {option.deai?.applied && (
+                    <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                      已去味 {option.deai.before_score}→{option.deai.after_score}
+                    </span>
+                  )}
+                  {option.deai && !option.deai.applied && option.deai.issues.length > 0 && (
+                    <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+                      AI 味偏重 · {option.deai.issues.length} 项
+                    </span>
+                  )}
                 </span>
                 <span className="mt-1 block text-sm leading-6 text-slate-800">{option.text}</span>
+                {option.deai?.applied && option.deai.original && (
+                  <details className="mt-1.5">
+                    <summary className="cursor-pointer text-[11px] text-slate-400">查看原稿对比</summary>
+                    <p className="mt-1 rounded bg-slate-50 px-2 py-1 text-xs leading-5 text-slate-500">
+                      {option.deai.original}
+                    </p>
+                  </details>
+                )}
+                {option.deai && option.deai.issues.length > 0 && (
+                  <span className="mt-1 block text-[11px] text-slate-400">
+                    命中：{option.deai.issues.join("、")}
+                  </span>
+                )}
               </span>
             </label>
           );

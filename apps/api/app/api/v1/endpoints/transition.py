@@ -19,6 +19,7 @@ from app.schemas.transition import (
 )
 from app.services.documents.transitions import (
     analyze_transitions,
+    apply_deai,
     assemble_markdown,
     boundary_summary,
     build_blocks,
@@ -46,6 +47,9 @@ async def analyze(payload: TransitionRequest) -> TransitionResponse:
             boundaries = await analyze_transitions(boundaries, provider, title)
         except LLMError as exc:
             raise HTTPException(status_code=exc.status_code or 502, detail=str(exc)) from exc
+
+        if payload.deai:
+            await apply_deai(boundaries, provider)
 
     elapsed = int((time.perf_counter() - started) * 1000)
     logger.info("过渡分析完成 blocks=%d boundaries=%d", len(blocks), len(boundaries))
