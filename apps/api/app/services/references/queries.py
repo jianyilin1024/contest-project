@@ -31,13 +31,21 @@ QUERY_PROMPT = """你是学术检索助手。请根据文档标题与章节标�
 
 
 async def suggest_queries(
-    title: str, headings: list[str], provider: LLMProvider
+    title: str, headings: list[str], excerpt: str, provider: LLMProvider
 ) -> list[str]:
-    """返回 3–5 个检索关键词；失败时退化为标题本身。"""
+    """返回 3–5 个检索关键词；失败时退化为标题本身。
+
+    excerpt 是正文摘录——标题常常很泛（如「小组作业合并稿」），
+    只看标题会抽出与内容无关的关键词，必须结合正文。
+    """
     outline = "\n".join(f"- {item}" for item in headings[:12] if item)
+    body = (excerpt or "").strip()[:600]
     messages = [
         ChatMessage("system", QUERY_PROMPT),
-        ChatMessage("user", f"文档标题：{title}\n章节：\n{outline or '（无章节）'}"),
+        ChatMessage(
+            "user",
+            f"文档标题：{title}\n章节：\n{outline or '（无章节）'}\n\n正文摘录：\n{body or '（无正文）'}",
+        ),
     ]
     try:
         result = await provider.structured(messages, QUERY_SCHEMA, max_tokens=800)

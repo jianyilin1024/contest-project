@@ -155,7 +155,13 @@ async def oneclick(
         headings = [node.title for node in outcome.nodes if node.level >= 1]
         try:
             # 先把标题/章节转成具体关键词（含英文），再检索——单一中文标题召回很差
-            queries = await suggest_queries(query, headings, get_llm_provider())
+            excerpt = " ".join(
+                block.text
+                for node in outcome.nodes
+                for block in node.blocks
+                if block.kind == "paragraph"
+            )[:600]
+            queries = await suggest_queries(query, headings, excerpt, get_llm_provider())
             records = await search_references(queries, limit=max(1, min(reference_limit, 20)))
             if records:
                 formatted = format_entries(records)
