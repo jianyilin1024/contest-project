@@ -67,6 +67,9 @@ services:
     image: ${REGISTRY:-ghcr.io}/${IMAGE_OWNER:-jianyilin1024}/contest-api:${TAG:-latest}
     build:
       context: ./apps/api
+      args:
+        APT_MIRROR: ${APT_MIRROR:-deb.debian.org}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
     restart: always
     mem_limit: 448m
     env_file: .env.prod
@@ -86,6 +89,7 @@ services:
       context: ./apps/web
       args:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org}
     restart: always
     mem_limit: 448m
     environment:
