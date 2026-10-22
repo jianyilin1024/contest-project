@@ -6,8 +6,9 @@ FROM node:22-alpine AS base
 ARG NPM_REGISTRY=https://registry.npmjs.org
 # corepack 下载 pnpm 走的是自己的变量，pnpm 读 ~/.npmrc，两处都要设
 ENV COREPACK_NPM_REGISTRY=${NPM_REGISTRY}
+# 国内镜像下载大包（如 next 的 43MB tarball）容易超时，放宽容错
 RUN corepack enable \
- && printf 'registry=%s\n' "$NPM_REGISTRY" > /root/.npmrc \
+ && printf 'registry=%s\nfetch-timeout=300000\nfetch-retries=6\nnetwork-concurrency=4\n' "$NPM_REGISTRY" > /root/.npmrc \
  && npm config set registry "$NPM_REGISTRY" --location=global
 WORKDIR /app
 
