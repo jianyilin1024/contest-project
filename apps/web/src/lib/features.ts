@@ -160,7 +160,8 @@ export const FEATURES: Feature[] = [
     icon: "book",
     accent: "from-violet-500 to-indigo-500",
     stage: "P11",
-    status: "planned",
+    status: "done",
+    dedicated: true,
     capabilities: [
       "按概要 / 大纲检索相关文献",
       "接入 OpenAlex、Crossref 学术元数据",

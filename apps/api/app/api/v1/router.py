@@ -2,7 +2,16 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import analysis, format, health, llm, merge, transition
+from app.api.v1.endpoints import (
+    analysis,
+    format,
+    health,
+    llm,
+    merge,
+    pipeline,
+    references,
+    transition,
+)
 
 api_router = APIRouter()
 api_router.include_router(health.router)
@@ -11,7 +20,5 @@ api_router.include_router(merge.router)
 api_router.include_router(analysis.router)
 api_router.include_router(format.router)
 api_router.include_router(transition.router)
-
-# 后续阶段在此追加：
-# api_router.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
-# api_router.include_router(references.router, prefix="/references", tags=["references"])
+api_router.include_router(references.router)
+api_router.include_router(pipeline.router)

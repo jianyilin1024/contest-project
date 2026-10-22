@@ -431,3 +431,119 @@ export async function applyTransitions(
   }
   return (await response.json()) as ApplyResult;
 }
+/* ==================== F7 参考文献 ==================== */
+
+export type ReferenceRecord = {
+  title: string;
+  authors: string[];
+  year: number | null;
+  venue: string;
+  volume: string;
+  issue: string;
+  pages: string;
+  doi: string;
+  url: string;
+  kind: string;
+  source: string;
+  cited_by: number;
+  relevance: number;
+  abstract: string;
+};
+
+export type CitationEntry = {
+  index: number;
+  text: string;
+  record: ReferenceRecord;
+};
+
+export type ReferenceSearchResponse = {
+  query: string;
+  total: number;
+  entries: CitationEntry[];
+};
+
+export async function searchReferences(
+  query: string,
+  limit = 8,
+): Promise<ReferenceSearchResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/references/search`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, limit }),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as ReferenceSearchResponse;
+}
+
+export async function insertReferences(
+  markdown: string,
+  entries: string[],
+): Promise<{ markdown: string; inserted: number }> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/references/insert`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ markdown, entries }),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as { markdown: string; inserted: number };
+}
+
+/* ==================== 一键成稿 ==================== */
+
+export type PipelineStep = {
+  name: string;
+  status: "ok" | "skipped" | "failed";
+  detail: string;
+  elapsed_ms: number;
+};
+
+export type OneClickResponse = {
+  title: string;
+  merged_markdown: string;
+  final_markdown: string;
+  stats: Record<string, unknown>;
+  duplicates: unknown[];
+  terms: unknown[];
+  warnings: string[];
+  transitions: { candidates: number; needed: number; applied: number; skipped: boolean };
+  references: {
+    query: string;
+    queries?: string[];
+    entries: CitationEntry[];
+    inserted: number;
+    skipped: boolean;
+  };
+  steps: PipelineStep[];
+  elapsed_ms: number;
+};
+
+export async function runOneClick(
+  files: File[],
+  meta: { author: string; title: string }[],
+  title: string,
+  options: { deai: boolean; addTransitions: boolean; findReferences: boolean; referenceLimit: number },
+): Promise<OneClickResponse> {
+  const form = new FormData();
+  for (const file of files) {
+    form.append("files", file);
+  }
+  form.append("meta", JSON.stringify(meta));
+  form.append("title", title);
+  form.append("deai", String(options.deai));
+  form.append("add_transitions", String(options.addTransitions));
+  form.append("find_references", String(options.findReferences));
+  form.append("reference_limit", String(options.referenceLimit));
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/pipeline/oneclick`, {
+    method: "POST",
+    body: form,
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as OneClickResponse;
+}
