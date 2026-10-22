@@ -261,30 +261,52 @@ async def search_all(
     from app.services.search.deepseek import web_search
 
     records: list[ReferenceRecord] = []
-    if include_academic:
-        records.extend(await search_multi(queries, limit=limit))
 
-    if include_books:
-        for query in queries[:2]:
-            records.extend(await search_books(query, limit=3))
+    # 三类来源互不依赖，并发发起——串行时网页检索会把整体拖到 20 秒以上
+    academic_task = search_multi(queries, limit=limit) if include_academic else None
+    book_tasks = [search_books(query, limit=3) for query in queries[:2]] if include_books else []
+    web_tasks = [
+        web_search(query, count=6, ori_question=queries[0] if queries else None)
+        for query in queries[:2]
+    ] if include_web else []
 
-    if include_web:
-        for query in queries[:2]:
-            items = await web_search(query, count=6, ori_question=queries[0] if queries else None)
-            for item in [entry for entry in items if _web_result_usable(entry)][:3]:
-                records.append(
+    results = await asyncio.gather(
+        *( [academic_task] if academic_task else [] ),
+        *book_tasks,
+        *web_tasks,
+        return_exceptions=True,
+    )
+
+    academic_count = 1 if academic_task else 0
+    for batch in results[:academic_count]:
+        if isinstance(batch, BaseException) or not batch:
+            continue
+        records.extend(batch)
+
+    book_batches = results[academic_count : academic_count + len(book_tasks)]
+    for batch in book_batches:
+        if isinstance(batch, BaseException) or not batch:
+            continue
+        records.extend(batch)
+
+    web_batches = results[academic_count + len(book_tasks) :]
+    for batch in web_batches:
+        if isinstance(batch, BaseException) or not batch:
+            continue
+        for item in [entry for entry in batch if _web_result_usable(entry)][:3]:
+            records.append(
                     ReferenceRecord(
-                        title=item["title"],
-                        authors=[],
-                        year=_year_from_date(item["date"]),
-                        venue=item["site_name"],
-                        url=item["url"],
-                        kind="web",
-                        source="deepseek-web",
-                        relevance=item["score"],
-                        abstract=item["summary"],
-                    )
+                    title=item["title"],
+                    authors=[],
+                    year=_year_from_date(item["date"]),
+                    venue=item["site_name"],
+                    url=item["url"],
+                    kind="web",
+                    source="deepseek-web",
+                    relevance=item["score"],
+                    abstract=item["summary"],
                 )
+            )
 
     # 跨来源去重（同标题或同 URL）
     seen: set[str] = set()

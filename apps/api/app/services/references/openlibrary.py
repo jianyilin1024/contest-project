@@ -14,7 +14,9 @@ from app.services.references.sources import ReferenceRecord
 logger = logging.getLogger(__name__)
 
 OPENLIBRARY = "https://openlibrary.org/search.json"
-TIMEOUT = 20
+# 实测国内访问 Open Library 常在 20 秒以上且经常空结果，
+# 超时压到 6 秒：拿得到就拿，拿不到不拖慢整体。
+TIMEOUT = 6
 
 
 async def search_books(query: str, limit: int = 4) -> list[ReferenceRecord]:
