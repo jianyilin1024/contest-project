@@ -143,7 +143,17 @@ pnpm dev
 
 打开 http://localhost:3000 ，首页右上角会显示**后端连接状态**，绿色即表示前后端已打通。
 
-## 五、接口一览（v0.1）
+## 五、一键成稿
+
+打开 `/oneclick`，上传所有成员的文稿，一次完成：
+
+```
+合并归一 → 补写过渡段 → 检索真实参考文献 → 排版导出 Word
+```
+
+约 10–20 秒。参考文献来自 OpenAlex / Crossref 的真实记录，可点 DOI 核实。
+
+## 六、接口一览（v0.1）
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
@@ -161,6 +171,9 @@ pnpm dev
 | POST | `/api/v1/format/references` | AI 规范化参考文献（GB/T 7714-2015） |
 | POST | `/api/v1/transition/analyze` | **F3 过渡段落**：识别章节断层 + 生成多备选 |
 | POST | `/api/v1/transition/apply` | 按勾选把过渡段插入文档，返回 Markdown |
+| POST | `/api/v1/references/search` | **F7 参考文献**：OpenAlex/Crossref 检索 + GB/T 7714 格式化 |
+| POST | `/api/v1/references/insert` | 把选中条目写入文稿的「参考文献」段 |
+| POST | `/api/v1/pipeline/oneclick` | **一键成稿**：合并 → 过渡 → 文献 → 返回成稿 Markdown |
 
 `/llm/chat` 请求示例：
 
@@ -173,7 +186,7 @@ curl -X POST http://localhost:8000/api/v1/llm/chat \
 > 当前模型为**推理模型**：`max_tokens` 太小会被思考过程吃光导致回答为空，
 > 网关默认已设为 2048。详见 [环境配置说明](docs/环境配置说明.md)。
 
-## 六、常用命令
+## 七、常用命令
 
 | 目的 | 命令 |
 |---|---|
@@ -186,7 +199,7 @@ curl -X POST http://localhost:8000/api/v1/llm/chat \
 | 前端构建 | `cd apps/web && pnpm build` |
 | 生产环境启动全栈 | `docker compose -f docker-compose.prod.yml up -d --build` |
 
-## 七、部署
+## 八、部署
 
 完整的服务器采购、初始化、域名解析、HTTPS、自动部署流程见
 [docs/部署说明.md](docs/部署说明.md)。
@@ -199,7 +212,7 @@ cp .env.example .env.prod && vim .env.prod
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-## 八、开发约定
+## 九、开发约定
 
 - **配置只走环境变量**：业务代码里不要出现 `os.environ`，统一从 `app.core.config.settings` 读取。
 - **数据库模型**放在 `app/models/`，统一继承 `app.db.base.Base`，时间字段用 `TimestampMixin`。
@@ -208,7 +221,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 - **提交前**跑一遍 `ruff check .`、`pytest`、`pnpm typecheck`；CI 也会检查。
 - **不要提交** `.env`、密钥、模型 API Key。
 
-## 九、路线图
+## 十、路线图
 
 | 阶段 | 内容 | 状态 |
 |---|---|---|
@@ -222,10 +235,11 @@ docker compose -f docker-compose.prod.yml up -d --build
 | P7 | F3 过渡段落生成（AI 定位 + 多备选 + 勾选式预览） | ✅ |
 | P8 | F4 用语风格统一（建议与归并稿已具备，逐句 diff 待做） | 🟡 |
 | P9 | F5 AI 辅助排版 | ✅ |
-| P10–P11 | F6 数据助手 / F7 参考文献助手 | ⏳ |
+| P11 | F7 参考文献助手（OpenAlex/Crossref + GB/T 7714） | ✅ |
+| P10 | F6 数据助手（需搜索 API Key） | ⏳ |
 | P12 | 联调、部署、演示材料 | ⏳ |
 
-## 十、文档索引
+## 十一、文档索引
 
 - [需求分析与实施计划](docs/需求分析与实施计划.md)
 - [环境配置说明](docs/环境配置说明.md)
