@@ -4,7 +4,11 @@
 
 FROM node:22-alpine AS base
 ARG NPM_REGISTRY=https://registry.npmjs.org
-RUN corepack enable && npm config set registry "$NPM_REGISTRY" --location=global
+# corepack 下载 pnpm 走的是自己的变量，pnpm 读 ~/.npmrc，两处都要设
+ENV COREPACK_NPM_REGISTRY=${NPM_REGISTRY}
+RUN corepack enable \
+ && printf 'registry=%s\n' "$NPM_REGISTRY" > /root/.npmrc \
+ && npm config set registry "$NPM_REGISTRY" --location=global
 WORKDIR /app
 
 FROM base AS deps
