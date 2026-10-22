@@ -49,11 +49,15 @@ async def oneclick(
     files: Annotated[list[UploadFile], File(description="成员文稿，支持 docx / md / txt")],
     meta: Annotated[str | None, Form()] = None,
     title: Annotated[str, Form()] = "合并文稿",
-    deai: Annotated[bool, Form()] = True,
-    add_transitions: Annotated[bool, Form()] = True,
-    find_references: Annotated[bool, Form()] = True,
+    deai: Annotated[bool | None, Form()] = None,
+    add_transitions: Annotated[bool | None, Form()] = None,
+    find_references: Annotated[bool | None, Form()] = None,
     reference_limit: Annotated[int, Form()] = 8,
 ) -> OneClickResponse:
+    # 不传参时默认全开；显式传 false 才关闭（Form 的布尔默认值在缺省时不可靠）
+    want_deai = True if deai is None else deai
+    want_transitions = True if add_transitions is None else add_transitions
+    want_references = True if find_references is None else find_references
     started = time.perf_counter()
     steps: list[StepOut] = []
 
@@ -107,7 +111,7 @@ async def oneclick(
     transition_info: dict = {"candidates": 0, "needed": 0, "applied": 0, "skipped": True}
 
     # ---------- 2. 过渡段落 ----------
-    if add_transitions:
+    if want_transitions:
         mark = time.perf_counter()
         try:
             provider = get_llm_provider()
@@ -115,7 +119,7 @@ async def oneclick(
             boundaries = find_boundaries(blocks)
             if boundaries:
                 boundaries = await analyze_transitions(boundaries, provider, title or "合并文稿")
-                if deai:
+                if want_deai:
                     await apply_deai(boundaries, provider)
                 picks = []
                 for boundary in boundaries:
@@ -149,7 +153,7 @@ async def oneclick(
 
     # ---------- 3. 参考文献 ----------
     reference_info: dict = {"query": "", "entries": [], "inserted": 0, "skipped": True}
-    if find_references:
+    if want_references:
         mark = time.perf_counter()
         query = (title or "").strip()
         headings = [node.title for node in outcome.nodes if node.level >= 1]
