@@ -465,11 +465,12 @@ export type ReferenceSearchResponse = {
 export async function searchReferences(
   query: string,
   limit = 8,
+  sources: string[] = ["academic", "book", "web"],
 ): Promise<ReferenceSearchResponse> {
   const response = await fetch(`${API_BASE_URL}/api/v1/references/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, limit }),
+    body: JSON.stringify({ query, limit, sources }),
   });
   if (!response.ok) {
     throw new Error(await readError(response));

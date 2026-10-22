@@ -28,6 +28,8 @@ class ReferenceEntryOut(BaseModel):
 class ReferenceSearchRequest(BaseModel):
     query: str = Field(min_length=1)
     limit: int = Field(default=8, ge=1, le=20)
+    # 来源开关：学术论文 / 图书 / 网页资料
+    sources: list[str] = Field(default_factory=lambda: ["academic", "book", "web"])
 
 
 class ReferenceSearchResponse(BaseModel):

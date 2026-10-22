@@ -8,6 +8,7 @@
 
 import asyncio
 import logging
+import re
 from dataclasses import dataclass, field
 
 import httpx
@@ -218,6 +219,84 @@ async def search_multi(
         merged.values(), key=lambda item: (item.relevance, item.cited_by), reverse=True
     )
     return ranked[:limit]
+
+
+# 网页结果里常见的噪声：PDF 片段、导航文字、抓取残留
+_WEB_NOISE = re.compile(
+    r"^(\[\d+\]|跳到|跳至|登录|注册|首页|目录|第\s*\d+\s*页)|跳到主要内容|跳至主要内容|Ask Learn"
+)
+
+
+def _web_result_usable(item: dict) -> bool:
+    """过滤掉标题是正文片段、导航文字或缺少站点信息的网页结果。"""
+    title = (item.get("title") or "").strip()
+    if not (6 <= len(title) <= 90):
+        return False
+    if _WEB_NOISE.search(title):
+        return False
+    if not item.get("site_name"):
+        return False
+    # 权威度太低（0/1）的多为论坛、转载页，宁缺毋滥
+    return int(item.get("authority") or 0) >= 2
+
+
+def _year_from_date(value: str) -> int | None:
+    match = re.search(r"(19|20)\d{2}", value or "")
+    return int(match.group(0)) if match else None
+
+
+async def search_all(
+    queries: list[str],
+    limit: int = 8,
+    include_academic: bool = True,
+    include_books: bool = True,
+    include_web: bool = True,
+) -> list[ReferenceRecord]:
+    """聚合三类来源：学术论文、图书、网页资料。
+
+    参考文献不只有学术论著——科普读物、文学作品、政策文件同样会被引用，
+    因此这里把「学术库 / 图书库 / 网页检索」并列，各自带 kind 标识。
+    """
+    from app.services.references.openlibrary import search_books  # 延迟导入避免循环依赖
+    from app.services.search.deepseek import web_search
+
+    records: list[ReferenceRecord] = []
+    if include_academic:
+        records.extend(await search_multi(queries, limit=limit))
+
+    if include_books:
+        for query in queries[:2]:
+            records.extend(await search_books(query, limit=3))
+
+    if include_web:
+        for query in queries[:2]:
+            items = await web_search(query, count=6, ori_question=queries[0] if queries else None)
+            for item in [entry for entry in items if _web_result_usable(entry)][:3]:
+                records.append(
+                    ReferenceRecord(
+                        title=item["title"],
+                        authors=[],
+                        year=_year_from_date(item["date"]),
+                        venue=item["site_name"],
+                        url=item["url"],
+                        kind="web",
+                        source="deepseek-web",
+                        relevance=item["score"],
+                        abstract=item["summary"],
+                    )
+                )
+
+    # 跨来源去重（同标题或同 URL）
+    seen: set[str] = set()
+    deduped: list[ReferenceRecord] = []
+    for record in records:
+        key = _dedupe_key(record) or record.url
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(record)
+
+    return deduped[:limit]
 
 
 async def search(query: str, limit: int = 8, enrich: bool = True) -> list[ReferenceRecord]:

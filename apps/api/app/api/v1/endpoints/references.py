@@ -17,7 +17,7 @@ from app.schemas.references import (
 )
 from app.services.documents.references import find_reference_section
 from app.services.references.gbt import format_entries
-from app.services.references.sources import search
+from app.services.references.sources import search_all
 
 router = APIRouter(prefix="/references", tags=["references"])
 logger = logging.getLogger(__name__)
@@ -25,11 +25,18 @@ logger = logging.getLogger(__name__)
 
 @router.post("/search", response_model=ReferenceSearchResponse, summary="检索真实文献")
 async def search_references(payload: ReferenceSearchRequest) -> ReferenceSearchResponse:
-    records = await search(payload.query.strip(), limit=payload.limit)
+    wanted = {item.lower() for item in payload.sources}
+    records = await search_all(
+        [payload.query.strip()],
+        limit=payload.limit,
+        include_academic="academic" in wanted,
+        include_books="book" in wanted,
+        include_web="web" in wanted,
+    )
     if not records:
         raise HTTPException(
             status_code=404,
-            detail="没有检索到相关文献。可以换用更具体的关键词，或改用英文检索（OpenAlex 以英文文献为主）。",
+            detail="没有检索到相关文献。可以换用更具体的关键词，或改用英文检索（学术库以英文文献为主）。",
         )
     entries = format_entries(records)
     logger.info("文献检索完成 query=%s hits=%d", payload.query, len(entries))

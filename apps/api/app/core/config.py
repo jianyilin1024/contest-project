@@ -57,8 +57,10 @@ class Settings(BaseSettings):
     llm_timeout: int = 60
 
     # ---------- 搜索 ----------
-    search_provider: str = "tavily"
+    search_provider: str = "deepseek"
     search_api_key: str = ""
+    # DeepSeek 搜索 API 的基地址（不含 /search 或 /fetch）
+    search_base_url: str = "https://api.deepseek.com/v1/tools"
 
     @field_validator("cors_origins", mode="before")
     @classmethod

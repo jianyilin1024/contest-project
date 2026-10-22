@@ -12,9 +12,17 @@ export default function ReferencesPage() {
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(8);
   const [entries, setEntries] = useState<CitationEntry[]>([]);
+  const [edited, setEdited] = useState<Record<number, string>>({});
+  const [sources, setSources] = useState<string[]>(["academic", "book", "web"]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+
+  const toggleSource = (key: string) => {
+    setSources((prev) =>
+      prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
+    );
+  };
 
   const run = async () => {
     if (!query.trim()) {
@@ -25,8 +33,9 @@ export default function ReferencesPage() {
     setError("");
     setEntries([]);
     try {
-      const data = await searchReferences(query.trim(), limit);
+      const data = await searchReferences(query.trim(), limit, sources);
       setEntries(data.entries);
+      setEdited(Object.fromEntries(data.entries.map((entry) => [entry.index, entry.text])));
     } catch (err) {
       setError(err instanceof Error ? err.message : "检索失败");
     } finally {
@@ -36,7 +45,9 @@ export default function ReferencesPage() {
 
   const copyAll = async () => {
     try {
-      await navigator.clipboard.writeText(entries.map((entry) => entry.text).join("\n"));
+      await navigator.clipboard.writeText(
+        entries.map((entry) => edited[entry.index] ?? entry.text).join("\n"),
+      );
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -116,6 +127,31 @@ export default function ReferencesPage() {
           </button>
         </div>
 
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs text-slate-400">来源：</span>
+          {[
+            { key: "academic", label: "学术论文" },
+            { key: "book", label: "图书" },
+            { key: "web", label: "网页 / 科普" },
+          ].map((item) => {
+            const active = sources.includes(item.key);
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => toggleSource(item.key)}
+                className={`rounded-full border px-2.5 py-1 text-xs transition ${
+                  active
+                    ? "border-violet-400 bg-violet-50 text-violet-700"
+                    : "border-slate-200 text-slate-400"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="mt-3 flex flex-wrap gap-2">
           {EXAMPLES.map((example) => (
             <button
@@ -149,7 +185,14 @@ export default function ReferencesPage() {
           <ul className="mt-3 space-y-2">
             {entries.map((entry) => (
               <li key={entry.index} className="rounded-xl border border-slate-200 p-3">
-                <p className="text-sm leading-6 text-slate-800">{entry.text}</p>
+                <textarea
+                  value={edited[entry.index] ?? entry.text}
+                  onChange={(event) =>
+                    setEdited((prev) => ({ ...prev, [entry.index]: event.target.value }))
+                  }
+                  rows={2}
+                  className="w-full resize-y rounded-lg border border-transparent bg-slate-50 px-2 py-1.5 text-sm leading-6 text-slate-800 outline-none focus:border-violet-300 focus:bg-white"
+                />
                 <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                   <span className="rounded-md bg-slate-100 px-1.5 py-0.5">{entry.record.kind}</span>
                   <span>被引 {entry.record.cited_by}</span>
@@ -169,7 +212,9 @@ export default function ReferencesPage() {
             ))}
           </ul>
           <p className="mt-3 text-xs text-slate-400">
-            条目来自 OpenAlex / Crossref 的真实元数据；格式按 GB/T 7714-2015 在本地生成。
+            条目来自 OpenAlex / Crossref / Open Library / 网页检索的真实记录；格式按 GB/T 7714-2015 在本地生成。
+            <br />
+            条目可直接编辑——图书缺出版社、网页缺日期时，手动补齐即可（国标允许缺项）。
           </p>
         </section>
       )}

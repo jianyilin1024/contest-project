@@ -77,10 +77,10 @@ def _fake_record() -> ReferenceRecord:
 
 
 def test_search_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def fake_search(query: str, limit: int = 8):  # noqa: ANN001
+    async def fake_search(queries, limit=8, **kwargs):  # noqa: ANN001, ANN003
         return [_fake_record()]
 
-    monkeypatch.setattr(references_endpoint, "search", fake_search)
+    monkeypatch.setattr(references_endpoint, "search_all", fake_search)
     response = client.post("/api/v1/references/search", json={"query": "few-shot", "limit": 5})
     assert response.status_code == 200, response.text
     body = response.json()
@@ -90,12 +90,29 @@ def test_search_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_search_endpoint_empty(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def fake_search(query: str, limit: int = 8):  # noqa: ANN001
+    async def fake_search(queries, limit=8, **kwargs):  # noqa: ANN001, ANN003
         return []
 
-    monkeypatch.setattr(references_endpoint, "search", fake_search)
+    monkeypatch.setattr(references_endpoint, "search_all", fake_search)
     response = client.post("/api/v1/references/search", json={"query": "nothing"})
     assert response.status_code == 404
+
+
+def test_search_endpoint_accepts_source_filter(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict = {}
+
+    async def fake_search(queries, limit=8, **kwargs):  # noqa: ANN001, ANN003
+        captured.update(kwargs)
+        return [_fake_record()]
+
+    monkeypatch.setattr(references_endpoint, "search_all", fake_search)
+    client.post(
+        "/api/v1/references/search",
+        json={"query": "x", "sources": ["book"]},
+    )
+    assert captured["include_books"] is True
+    assert captured["include_academic"] is False
+    assert captured["include_web"] is False
 
 
 def test_insert_references_appends_section() -> None:

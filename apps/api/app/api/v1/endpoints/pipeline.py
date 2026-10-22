@@ -25,7 +25,7 @@ from app.services.documents.transitions import (
 from app.services.llm import LLMError, get_llm_provider
 from app.services.references.gbt import format_entries
 from app.services.references.queries import suggest_queries
-from app.services.references.sources import search_multi as search_references
+from app.services.references.sources import search_all as search_references
 
 router = APIRouter(prefix="/pipeline", tags=["pipeline"])
 logger = logging.getLogger(__name__)
@@ -162,7 +162,9 @@ async def oneclick(
                 if block.kind == "paragraph"
             )[:600]
             queries = await suggest_queries(query, headings, excerpt, get_llm_provider())
-            records = await search_references(queries, limit=max(1, min(reference_limit, 20)))
+            records = await search_references(
+                queries, limit=max(1, min(reference_limit, 20))
+            )
             if records:
                 formatted = format_entries(records)
                 texts = [item["text"] for item in formatted]
