@@ -34,6 +34,13 @@ MAX_FILES = 20
 MAX_FILE_BYTES = 10 * 1024 * 1024
 
 
+def _flag(value: str | None, default: bool = True) -> bool:
+    """表单开关解析：缺省为 True，显式传 false/0/no 才关闭。"""
+    if value is None or value == "":
+        return default
+    return value.strip().lower() in ("1", "true", "yes", "on")
+
+
 def _parse_meta(meta: str | None) -> list[dict]:
     if not meta:
         return []
@@ -49,15 +56,16 @@ async def oneclick(
     files: Annotated[list[UploadFile], File(description="成员文稿，支持 docx / md / txt")],
     meta: Annotated[str | None, Form()] = None,
     title: Annotated[str, Form()] = "合并文稿",
-    deai: Annotated[bool | None, Form()] = None,
-    add_transitions: Annotated[bool | None, Form()] = None,
-    find_references: Annotated[bool | None, Form()] = None,
+    deai: Annotated[str | None, Form()] = None,
+    add_transitions: Annotated[str | None, Form()] = None,
+    find_references: Annotated[str | None, Form()] = None,
     reference_limit: Annotated[int, Form()] = 8,
 ) -> OneClickResponse:
-    # 不传参时默认全开；显式传 false 才关闭（Form 的布尔默认值在缺省时不可靠）
-    want_deai = True if deai is None else deai
-    want_transitions = True if add_transitions is None else add_transitions
-    want_references = True if find_references is None else find_references
+    # 用字符串接收再解析：FastAPI 对 bool 表单的缺省值处理不符合预期
+    # （不传参时会变成 False），用 str + 显式默认最可靠。
+    want_deai = _flag(deai)
+    want_transitions = _flag(add_transitions)
+    want_references = _flag(find_references)
     started = time.perf_counter()
     steps: list[StepOut] = []
 
