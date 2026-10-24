@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     llm,
     merge,
     pipeline,
+    projects,
     references,
     transition,
 )
@@ -23,4 +24,5 @@ api_router.include_router(format.router)
 api_router.include_router(transition.router)
 api_router.include_router(references.router)
 api_router.include_router(data_assistant.router)
+api_router.include_router(projects.router)
 api_router.include_router(pipeline.router)

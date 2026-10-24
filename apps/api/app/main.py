@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.logging import setup_logging
+from app.db.init import init_models
 
 setup_logging("DEBUG" if settings.debug else "INFO")
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("application starting env=%s", settings.app_env)
+    await init_models()
     yield
     logger.info("application stopping")
 

@@ -58,7 +58,8 @@ export const FEATURES: Feature[] = [
     icon: "checkSquare",
     accent: "from-emerald-500 to-teal-500",
     stage: "P6",
-    status: "planned",
+    status: "done",
+    dedicated: true,
     capabilities: [
       "成员与角色管理（组长 / 成员）",
       "任务看板：待办 / 进行中 / 已完成",

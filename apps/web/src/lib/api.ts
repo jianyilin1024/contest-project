@@ -579,3 +579,63 @@ export async function assistData(text: string): Promise<DataAssistResponse> {
   }
   return (await response.json()) as DataAssistResponse;
 }
+/* ==================== F2 分工记录 ==================== */
+
+export type Member = { id: number; name: string; role: string };
+export type Task = {
+  id: number;
+  title: string;
+  section: string;
+  status: "todo" | "doing" | "done";
+  due_date: string | null;
+  note: string;
+  member_id: number | null;
+  member_name: string;
+};
+export type Project = {
+  id: number;
+  name: string;
+  description: string;
+  members: Member[];
+  tasks: Task[];
+  stats: Record<string, number>;
+};
+export type ProjectBrief = {
+  id: number;
+  name: string;
+  description: string;
+  member_count: number;
+  task_count: number;
+  done_count: number;
+};
+
+async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as T;
+}
+
+export const listProjects = () => getJson<ProjectBrief[]>("/api/v1/projects");
+export const createProject = (name: string, description = "") =>
+  send<Project>("/api/v1/projects", "POST", { name, description });
+export const getProject = (id: number) => getJson<Project>(`/api/v1/projects/${id}`);
+export const deleteProject = (id: number) =>
+  send<{ deleted: number }>(`/api/v1/projects/${id}`, "DELETE");
+export const addMember = (projectId: number, name: string, role = "成员") =>
+  send<Member>(`/api/v1/projects/${projectId}/members`, "POST", { name, role });
+export const removeMember = (id: number) =>
+  send<{ deleted: number }>(`/api/v1/members/${id}`, "DELETE");
+export const createTask = (
+  projectId: number,
+  payload: { title: string; section?: string; member_id?: number | null; due_date?: string | null },
+) => send<Task>(`/api/v1/projects/${projectId}/tasks`, "POST", payload);
+export const updateTask = (id: number, patch: Partial<Task>) =>
+  send<Task>(`/api/v1/tasks/${id}`, "PATCH", patch);
+export const deleteTask = (id: number) =>
+  send<{ deleted: number }>(`/api/v1/tasks/${id}`, "DELETE");
