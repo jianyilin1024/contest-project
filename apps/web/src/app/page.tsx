@@ -32,7 +32,7 @@ export default function HomePage() {
           <div className="animate-fade-up">
             <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/70 px-3 py-1 text-xs font-medium text-indigo-700 shadow-sm backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-              P1 工程骨架已就绪 · 功能模块开发中
+              F1–F7 全部上线 · 已部署至线上环境
             </span>
 
             <h1 className="mt-6 text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl">
