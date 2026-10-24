@@ -24,11 +24,13 @@ echo "==> 拉取最新代码"
 git pull --ff-only
 
 echo "==> 尝试拉取预构建镜像"
-if $COMPOSE pull --quiet 2>/dev/null; then
+# 国内直连 ghcr.io 经常很慢（数百 MB 可能十几分钟），这里限时 5 分钟；
+# 超时或失败就退回本地构建，避免部署卡死。
+if timeout 300 $COMPOSE pull --quiet 2>/dev/null; then
   echo "    已使用 CI 构建的镜像，跳过本地构建"
   UP_ARGS="--no-build"
 else
-  echo "    取不到预构建镜像（未登录 ghcr 或包为私有），改为本地构建"
+  echo "    取不到预构建镜像（网络慢或包未公开），改为本地构建"
   echo "    提示：2G 内存的机器首次构建较慢，请耐心等待"
   $COMPOSE build
   UP_ARGS=""
