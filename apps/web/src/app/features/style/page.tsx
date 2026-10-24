@@ -122,7 +122,7 @@ export default function StylePage() {
           </div>
           <h1 className="mt-2.5 text-3xl font-extrabold tracking-tight text-slate-900">风格统一</h1>
           <p className="mt-2 text-sm text-slate-500">
-            逐段改写成统一的学术书面语，**每一段都能单独接受或回退**——不是整篇一改到底。
+            逐段改写成统一的学术书面语，每一段都能单独接受或回退——不是整篇一改到底。
           </p>
         </div>
       </header>

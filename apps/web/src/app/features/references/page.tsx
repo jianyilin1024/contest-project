@@ -76,7 +76,7 @@ export default function ReferencesPage() {
           </div>
           <h1 className="mt-2.5 text-3xl font-extrabold tracking-tight text-slate-900">参考文献助手</h1>
           <p className="mt-2 text-sm text-slate-500">
-            从 OpenAlex 与 Crossref 检索**真实存在**的文献，本地按 GB/T 7714-2015 格式化。不生成、不编造。
+            从 OpenAlex 与 Crossref 检索真实存在的文献，本地按 GB/T 7714-2015 格式化。不生成、不编造。
           </p>
         </div>
       </header>

@@ -43,7 +43,7 @@ export default function FeaturesPage() {
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">功能分区</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600">
           七个模块按实施顺序编号（F1–F7），每个模块对应一个独立的入口页面。
-          当前均处于规划阶段，随开发推进逐个点亮。
+          七个模块均已上线，点进去即可使用。
         </p>
       </header>
 
