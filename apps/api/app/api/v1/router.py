@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     analysis,
+    data_assistant,
     format,
     health,
     llm,
@@ -21,4 +22,5 @@ api_router.include_router(analysis.router)
 api_router.include_router(format.router)
 api_router.include_router(transition.router)
 api_router.include_router(references.router)
+api_router.include_router(data_assistant.router)
 api_router.include_router(pipeline.router)

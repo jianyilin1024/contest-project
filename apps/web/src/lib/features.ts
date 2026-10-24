@@ -140,7 +140,8 @@ export const FEATURES: Feature[] = [
     icon: "database",
     accent: "from-rose-500 to-pink-500",
     stage: "P10",
-    status: "planned",
+    status: "done",
+    dedicated: true,
     capabilities: [
       "识别段落中的数据缺口",
       "联网检索并抽取数据",

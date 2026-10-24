@@ -548,3 +548,34 @@ export async function runOneClick(
   }
   return (await response.json()) as OneClickResponse;
 }
+/* ==================== F6 数据助手 ==================== */
+
+export type DataGap = { description: string; query: string };
+
+export type DataSuggestion = {
+  value: string;
+  context: string;
+  source_title: string;
+  source_url: string;
+  quote: string;
+  confidence: number;
+  gap: string;
+};
+
+export type DataAssistResponse = {
+  gaps: DataGap[];
+  suggestions: DataSuggestion[];
+  searched: number;
+};
+
+export async function assistData(text: string): Promise<DataAssistResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/data/assist`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as DataAssistResponse;
+}
