@@ -174,6 +174,13 @@ pnpm dev
 | POST | `/api/v1/references/search` | **F7 参考文献**：OpenAlex/Crossref 检索 + GB/T 7714 格式化 |
 | POST | `/api/v1/references/insert` | 把选中条目写入文稿的「参考文献」段 |
 | POST | `/api/v1/pipeline/oneclick` | **一键成稿**：合并 → 过渡 → 文献 → 返回成稿 Markdown |
+| POST | `/api/v1/data/assist` | **F6 数据助手**：识别数据缺口 + 联网检索 + 带来源建议 |
+| POST | `/api/v1/analysis/rewrite` | **F4 逐段风格统一**：返回原文/改后对照 |
+| POST | `/api/v1/analysis/rewrite/assemble` | 应用用户勾选的改写 |
+| GET/POST | `/api/v1/projects` | **F2 分工记录**：项目列表 / 新建 |
+| POST | `/api/v1/projects/{id}/members` | 添加成员 |
+| POST | `/api/v1/projects/{id}/tasks` | 新建任务 |
+| PATCH | `/api/v1/tasks/{id}` | 更新任务（状态流转） |
 
 `/llm/chat` 请求示例：
 
@@ -227,16 +234,16 @@ docker compose -f docker-compose.prod.yml up -d --build
 |---|---|---|
 | P0 | 需求分析与实施计划 | ✅ |
 | P1 | 工程骨架（本阶段） | ✅ |
-| P2 | 数据模型 + 认证 + 项目/成员 | ⏳ |
+| P2 | 数据模型 + 自动建表 + 项目/成员 | ✅ |
 | P3 | 文档导入与结构化解析 | ✅ |
 | P4 | 大模型网关（流式、结构化输出、降级重试） | ✅ |
 | P5 | F1 多部分整合（含单文档 AI 文风分析） | ✅ |
-| P6 | F2 分工记录 | ⏳ |
+| P6 | F2 分工记录（项目 / 成员 / 任务看板） | ✅ |
 | P7 | F3 过渡段落生成（AI 定位 + 多备选 + 勾选式预览） | ✅ |
-| P8 | F4 用语风格统一（建议与归并稿已具备，逐句 diff 待做） | 🟡 |
+| P8 | F4 用语风格统一（逐段 diff，可逐句接受/回退） | ✅ |
 | P9 | F5 AI 辅助排版 | ✅ |
 | P11 | F7 参考文献助手（OpenAlex/Crossref + GB/T 7714） | ✅ |
-| P10 | F6 数据助手（需搜索 API Key） | ⏳ |
+| P10 | F6 数据助手（DeepSeek 搜索 + 带来源的数据建议） | ✅ |
 | P12 | 联调、部署、演示材料 | ⏳ |
 
 ## 十一、文档索引
