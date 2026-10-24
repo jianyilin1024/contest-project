@@ -100,7 +100,8 @@ export const FEATURES: Feature[] = [
     icon: "wand",
     accent: "from-fuchsia-500 to-purple-500",
     stage: "P8",
-    status: "planned",
+    status: "done",
+    dedicated: true,
     capabilities: [
       "从样章提取风格画像",
       "全篇术语表统一（如「神经网络 / 类神经网络」）",

@@ -24,6 +24,13 @@ from app.schemas.analysis import (
     UnifyRequest,
     UnifyResponse,
 )
+from app.schemas.rewrite import (
+    RewriteAssembleRequest,
+    RewriteAssembleResponse,
+    RewriteRequest,
+    RewriteResponse,
+    RewriteSegment,
+)
 from app.services.documents import ParseError, parse_document
 from app.services.documents.ai_analysis import (
     advise_style,
@@ -31,6 +38,7 @@ from app.services.documents.ai_analysis import (
     recognize_layout,
     unify_segments,
 )
+from app.services.documents.rewrite import assemble, rewrite_diff
 from app.services.documents.segmentation import (
     MAX_UNITS,
     Segment,
@@ -239,3 +247,32 @@ async def unify(payload: UnifyRequest) -> UnifyResponse:
         failed=len(targets) - len(rewritten_map),
         notes=outcome["notes"],
     )
+
+# ---------------- F4：逐段风格统一（可逐句接受/拒绝） ----------------
+
+
+@router.post("/rewrite", response_model=RewriteResponse, summary="逐段风格统一")
+async def rewrite_style(payload: RewriteRequest) -> RewriteResponse:
+    """返回「原文 / 改后」成对结果，前端逐段勾选后调用 /rewrite/assemble。"""
+    try:
+        segments = await rewrite_diff(payload.markdown, get_llm_provider())
+    except LLMError as exc:
+        raise HTTPException(status_code=exc.status_code or 502, detail=str(exc)) from exc
+
+    changed = sum(1 for item in segments if item["changed"])
+    logger.info("风格统一完成 segments=%d changed=%d", len(segments), changed)
+    return RewriteResponse(
+        segments=[RewriteSegment(**item) for item in segments],
+        changed_count=changed,
+    )
+
+
+@router.post("/rewrite/assemble", response_model=RewriteAssembleResponse, summary="应用选中的改写")
+async def rewrite_assemble(payload: RewriteAssembleRequest) -> RewriteAssembleResponse:
+    accepted = set(payload.accepted)
+    markdown = assemble(
+        payload.markdown,
+        [item.model_dump() for item in payload.segments],
+        accepted,
+    )
+    return RewriteAssembleResponse(markdown=markdown, applied=len(accepted))

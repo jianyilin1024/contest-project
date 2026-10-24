@@ -639,3 +639,43 @@ export const updateTask = (id: number, patch: Partial<Task>) =>
   send<Task>(`/api/v1/tasks/${id}`, "PATCH", patch);
 export const deleteTask = (id: number) =>
   send<{ deleted: number }>(`/api/v1/tasks/${id}`, "DELETE");
+/* ==================== F4 逐段风格统一 ==================== */
+
+export type RewriteSegment = {
+  id: number;
+  original: string;
+  rewritten: string;
+  changed: boolean;
+  reason: string;
+};
+
+export async function rewriteStyle(markdown: string): Promise<{
+  segments: RewriteSegment[];
+  changed_count: number;
+}> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/analysis/rewrite`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ markdown }),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as { segments: RewriteSegment[]; changed_count: number };
+}
+
+export async function assembleRewrite(
+  markdown: string,
+  segments: RewriteSegment[],
+  accepted: number[],
+): Promise<{ markdown: string; applied: number }> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/analysis/rewrite/assemble`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ markdown, segments, accepted }),
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as { markdown: string; applied: number };
+}
