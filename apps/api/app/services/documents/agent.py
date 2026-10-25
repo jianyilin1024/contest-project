@@ -85,20 +85,37 @@ async def make_plan(
             "source": "fallback",
         }
 
-    # 用户显式关闭的步骤不因模型建议而开启
-    need_transitions = bool(result.get("need_transitions")) and want_transitions
-    need_references = bool(result.get("need_references")) and want_references
+    # 分工：用户决定"做不做"，模型决定"怎么做"。
+    # 用户勾选的步骤不会因为模型判断而被取消——否则勾选框就成了摆设。
+    model_wants_transitions = bool(result.get("need_transitions"))
+    model_wants_references = bool(result.get("need_references"))
+    need_transitions = want_transitions
+    need_references = want_references
+
     try:
         limit = int(result.get("reference_limit") or reference_limit)
     except (TypeError, ValueError):
         limit = reference_limit
+
+    reasoning = str(result.get("reasoning") or "")[:200]
+    advisories = []
+    if want_transitions and not model_wants_transitions:
+        advisories.append("Agent 判断本稿不必补过渡，但你已勾选，仍会执行")
+    if want_references and not model_wants_references:
+        advisories.append("Agent 判断本稿暂不需要文献，但你已勾选，仍会执行")
+    if advisories:
+        reasoning = "；".join(advisories) + ("。" + reasoning if reasoning else "")
 
     return {
         "need_transitions": need_transitions,
         "need_references": need_references,
         "reference_limit": max(3, min(limit, 20)),
         "transition_hint": str(result.get("transition_hint") or "")[:120],
-        "reasoning": str(result.get("reasoning") or "")[:200],
+        "reasoning": reasoning[:260],
+        "model_suggests": {
+            "transitions": model_wants_transitions,
+            "references": model_wants_references,
+        },
         "source": "model",
     }
 

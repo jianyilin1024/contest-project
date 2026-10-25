@@ -39,6 +39,19 @@ async def test_plan_from_model() -> None:
 
 
 @pytest.mark.asyncio
+async def test_plan_keeps_user_enabled_even_if_model_disagrees() -> None:
+    """用户勾选的步骤不能因为模型判断而被取消。"""
+    provider = FakeProvider(
+        {"need_transitions": False, "need_references": False, "reasoning": "稿子太短，不必补"}
+    )
+    plan = await agent.make_plan(["绪论"], "正文", True, True, 8, provider)
+    assert plan["need_transitions"] is True
+    assert plan["need_references"] is True
+    assert "已勾选" in plan["reasoning"]
+    assert plan["model_suggests"] == {"transitions": False, "references": False}
+
+
+@pytest.mark.asyncio
 async def test_plan_respects_user_off() -> None:
     """用户关掉的步骤，模型说要也不能开。"""
     provider = FakeProvider(
