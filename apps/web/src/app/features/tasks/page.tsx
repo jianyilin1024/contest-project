@@ -25,6 +25,12 @@ const COLUMNS: { key: Task["status"]; label: string; tone: string }[] = [
   { key: "done", label: "已完成", tone: "border-emerald-300" },
 ];
 
+/**
+ * 分工记录看板：项目 / 成员 / 任务三列。
+ *
+ * 每次写操作后都重新拉取项目详情，而不是在本地拼状态——
+ * 删除成员会把任务的 member_id 置空，本地拼接容易与服务端不一致。
+ */
 export default function TasksPage() {
   const [projects, setProjects] = useState<ProjectBrief[]>([]);
   const [current, setCurrent] = useState<Project | null>(null);

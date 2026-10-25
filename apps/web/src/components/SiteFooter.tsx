@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Icon } from "@/components/Icons";
 import { Logo } from "@/components/Logo";
 
+/** 全站页脚：项目简介、功能快捷入口、当前阶段说明。 */
 export function SiteFooter() {
   return (
     <footer className="mt-20 border-t border-slate-200/80 bg-white/60 backdrop-blur">

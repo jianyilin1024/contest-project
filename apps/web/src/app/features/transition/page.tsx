@@ -48,6 +48,11 @@ function blockClass(block: TransitionBlock): string {
   return "text-sm leading-7 text-slate-700";
 }
 
+/**
+ * 过渡段落生成：定位断层 → 多风格备选 → 勾选插入。
+ *
+ * 备选文本在生成时已经过去 AI 味处理，用户看到的是可直接使用的版本。
+ */
 export default function TransitionPage() {
   const [markdown, setMarkdown] = useState("");
   const [title, setTitle] = useState("小样本学习研究");

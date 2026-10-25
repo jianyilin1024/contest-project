@@ -94,6 +94,11 @@ def find_reference_section(markdown: str) -> dict | None:
 
 
 async def normalize_entries(entries: list[str], provider: LLMProvider) -> list[dict]:
+    """把用户粘贴的零散参考文献规范成 GB/T 7714 格式。
+
+    只做格式归一，不增删条目：模型回填数量少于输入时，缺的条目原样保留，
+    宁可格式没改好，也不能把作者提供的文献弄丢。
+    """
     if not entries:
         return []
     body = "\n".join(f"[{index}] {text}" for index, text in enumerate(entries, start=1))

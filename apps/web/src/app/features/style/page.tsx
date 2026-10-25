@@ -22,6 +22,11 @@ const SAMPLE = [
   "实验这块儿我们跑了好多组，效果都还不错，基本上比 baseline 强一些。",
 ].join("\n");
 
+/**
+ * 用语风格统一：逐段改写 + 左右对照 + 逐句接受。
+ *
+ * 默认只勾选真正改动的段落，未改动的段不占用户决策精力。
+ */
 export default function StylePage() {
   const [markdown, setMarkdown] = useState("");
   const [segments, setSegments] = useState<RewriteSegment[]>([]);

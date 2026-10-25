@@ -69,6 +69,10 @@ _MD_QUOTE = re.compile(r"^\s*>\s?")
 
 
 def parse_text(text: str, filename: str, author: str = "") -> ParsedDocument:
+    """解析 Markdown / 纯文本，按 # 的数量推断标题层级。
+
+    代码块内的 # 不计入标题——这是纯文本解析最容易误判的地方。
+    """
     nodes: list[Node] = []
     current = Node(level=0, title="", source=filename)
     nodes.append(current)
@@ -157,6 +161,11 @@ def _table_to_lines(table) -> list[str]:  # noqa: ANN001
 
 
 def parse_docx(data: bytes, filename: str, author: str = "") -> ParsedDocument:
+    """解析 docx。
+
+    依赖缺失或文件损坏都抛 ParseError（而不是让原始异常冒出去），
+    这样上层可以把多份文件的问题汇总成一条用户看得懂的提示。
+    """
     try:
         from docx import Document as DocxDocument
         from docx.table import Table

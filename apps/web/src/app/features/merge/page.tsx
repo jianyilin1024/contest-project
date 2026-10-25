@@ -29,6 +29,11 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+/**
+ * 多部分整合：上传多份文稿 → 合并 → 预览 / 导出。
+ *
+ * 每份文稿可单独填写作者与章节名；章节名留空时使用文稿内部的标题。
+ */
 export default function MergePage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [docTitle, setDocTitle] = useState("小组作业合并稿");

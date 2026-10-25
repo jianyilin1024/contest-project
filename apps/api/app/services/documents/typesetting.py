@@ -249,6 +249,11 @@ def build_docx(
     numbering: bool | None = None,
     page_numbers: bool | None = None,
 ) -> bytes:
+    """把 Markdown 渲染成 docx。
+
+    目录 / 编号 / 页码三个开关传 None 时取模板默认值，传布尔值则覆盖——
+    这样调用方既能用预设，也能针对单次导出临时改。
+    """
     template = TEMPLATES.get(template_key) or TEMPLATES[DEFAULT_TEMPLATE]
     want_toc = template.toc if toc is None else toc
     want_numbering = template.numbering if numbering is None else numbering

@@ -90,6 +90,11 @@ def _abstract_from_inverted(index: dict[str, list[int]] | None) -> str:
 
 
 async def search_openalex(query: str, limit: int = 8) -> list[ReferenceRecord]:
+    """调用 OpenAlex 检索学术作品。
+
+    失败时返回空列表而不是抛错：文献检索属于增强环节，
+    数据源不可用不该让整个成稿流程失败。
+    """
     params = {
         "search": query,
         "per_page": max(1, min(limit, 25)),
@@ -322,6 +327,11 @@ async def search_all(
 
 
 async def search(query: str, limit: int = 8, enrich: bool = True) -> list[ReferenceRecord]:
+    """单关键词检索：OpenAlex 主检索 + Crossref 补全卷期页。
+
+    enrich 只对前几条做 DOI 补全，避免一次检索打出十几个外部请求——
+    Crossref 补全逐条串行，条数一多耗时就不可控。
+    """
     records = await search_openalex(query, limit)
     if not enrich or not records:
         return records

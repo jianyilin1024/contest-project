@@ -120,6 +120,7 @@ NUMBER_STYLE_LABEL = {
 
 
 def detect_number_style(raw_title: str) -> str:
+    """判断标题用的是哪种编号风格（「一、」/「1.」/「1.1」…），无编号时返回 "none"。"""
     for name, pattern in _NUMBER_STYLES:
         if pattern and pattern.match(raw_title.strip()):
             return name

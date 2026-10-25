@@ -104,6 +104,10 @@ AUTHORSHIP_PROMPT = """你是文体分析专家。下面是一篇文档切分出
 async def analyze_authorship(
     segments: list[Segment], title: str, provider: LLMProvider
 ) -> dict:
+    """判断整篇文稿是否由多人写成，并给出可能的分组。
+
+    可分析段落少于两段时直接返回"无法判断"——样本不足时模型给出的结论没有参考价值。
+    """
     if len(segments) < 2:
         return {
             "heterogeneity": "low",
@@ -235,6 +239,11 @@ STYLE_PROMPT = """你是学术写作编辑。下面是同一篇文档中不同�
 async def advise_style(
     segments: list[Segment], authorship: dict, title: str, provider: LLMProvider
 ) -> dict:
+    """按文风分组给出统一建议。
+
+    先按 authorship 的分组把段落聚起来，再让模型针对「组与组之间的差异」提建议。
+    逐段点评只会得到一堆「这段有点口语」，无法指导整体改写。
+    """
     by_group: dict[str, list[Segment]] = {}
     group_of = {item["unit_id"]: item["group_id"] for item in authorship.get("assignments", [])}
     for segment in segments:
@@ -306,6 +315,10 @@ LAYOUT_PROMPT = """你是文档排版审校专家。下面是从文档里**客�
 
 
 async def recognize_layout(doc: ParsedDocument, title: str, provider: LLMProvider) -> dict:
+    """识别文稿原有的版式约定（标题层级写法、编号风格、图表标注等）。
+
+    先抽取结构事实再交给模型，避免模型凭空描述版式。
+    """
     facts = extract_layout_facts(doc)
     opening = "\n".join(
         block.text for node in doc.nodes[:6] for block in node.blocks[:2]

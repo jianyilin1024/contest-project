@@ -20,6 +20,11 @@ const STATS = [
   { value: "0", label: "元起步成本" },
 ];
 
+/**
+ * 首页：一句话定位 + 七个功能入口 + 一键成稿主推。
+ *
+ * 纯静态渲染、不请求后端——首页必须在后端异常时也能正常打开。
+ */
 export default function HomePage() {
   return (
     <main>

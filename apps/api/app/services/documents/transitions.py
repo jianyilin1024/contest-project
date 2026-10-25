@@ -373,6 +373,10 @@ def assemble_markdown(blocks: list[dict], insertions: list[dict]) -> str:
 
 
 def boundary_summary(boundaries: list[dict]) -> dict:
+    """汇总断点统计：候选数、需要补写的数量、跳过的数量。
+
+    前端用它显示「识别 N 处、补写 M 处」，也是自检判断过渡是否真的插入了的依据。
+    """
     needed = [item for item in boundaries if item["needs"] and item["options"]]
     return {
         "candidates": len(boundaries),

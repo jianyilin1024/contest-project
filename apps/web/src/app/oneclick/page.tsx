@@ -34,6 +34,13 @@ const STATUS_LABEL: Record<PipelineStep["status"], string> = {
   failed: "失败",
 };
 
+/**
+ * 一键成稿主页面。
+ *
+ * 状态机是「待机 → 执行中 → 完成」：点击后先收到 plan 画出流水线骨架，
+ * 再随 SSE 事件逐格点亮。排版导出是前端点击下载才发生的动作，
+ * 因此结果到达时就把这一步标记为就绪，否则它会一直停在「等待」。
+ */
 export default function OneClickPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [title, setTitle] = useState("小组作业合并稿");

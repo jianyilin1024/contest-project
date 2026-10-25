@@ -292,6 +292,7 @@ DEAI_SCHEMA: dict = {
 
 
 def build_targets(items: list[dict]) -> str:
+    """把待改写片段拼成提示词片段，带上 id 以便模型按 id 回填结果。"""
     blocks = []
     for item in items:
         labels = "、".join(issue["label"] for issue in item["issues"])

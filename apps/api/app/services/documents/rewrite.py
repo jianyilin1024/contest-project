@@ -93,6 +93,11 @@ async def _rewrite_batch(batch: list[dict], provider: LLMProvider) -> dict[int, 
 
 
 async def rewrite_diff(markdown: str, provider: LLMProvider) -> list[dict]:
+    """逐段改写并返回「原文 / 改后」对照。
+
+    分批 + 信号量并发：段落一多，单次调用会超时且 JSON 容易被截断，
+    分批把耗时和失败面都压到可控范围。
+    """
     paragraphs = split_paragraphs(markdown)
     if not paragraphs:
         return []

@@ -114,6 +114,11 @@ def _format_sources(results: list[dict]) -> str:
 
 
 async def detect_gaps(text: str, provider: LLMProvider) -> list[dict]:
+    """找出段落里「需要数据支撑、却没有给数据」的地方。
+
+    返回 [{description, query}]。query 是给联网检索用的关键词而不是给人看的描述——
+    两者分开是为了提高检索召回。模型失败时返回空列表，由上层决定是否继续。
+    """
     messages = [
         ChatMessage("system", GAP_PROMPT),
         ChatMessage("user", f"段落：\n{text[:1500]}"),
@@ -136,6 +141,11 @@ async def detect_gaps(text: str, provider: LLMProvider) -> list[dict]:
 async def extract_suggestions(
     text: str, gap: dict, results: list[dict], provider: LLMProvider
 ) -> list[dict]:
+    """从检索结果中抽取能填补缺口的数据。
+
+    每条建议都要求给出 source_url 与 quote，且 URL 必须落在本次检索结果里。
+    这是防编造的关键：模型编一句话容易，编一个能对上原文的引用很难。
+    """
     if not results:
         return []
     messages = [
@@ -187,6 +197,10 @@ async def extract_suggestions(
 
 
 async def assist(text: str, provider: LLMProvider) -> dict:
+    """数据助手主流程：识别缺口 → 并发检索 → 抽取建议。
+
+    某个缺口检索失败只是少一条建议，不影响其他缺口——单点失败不升级为整体失败。
+    """
     gaps = await detect_gaps(text, provider)
     if not gaps:
         return {"gaps": [], "suggestions": [], "searched": 0}

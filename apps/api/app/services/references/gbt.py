@@ -43,6 +43,11 @@ def format_author(name: str) -> str:
 
 
 def format_authors(authors: list[str], limit: int = 3) -> str:
+    """按 GB/T 7714 拼接作者。
+
+    超过 limit 位时截断：中文用「等」、西文用「et al」——
+    国标对中英文的省略写法要求不同，混用会被判为格式错误。
+    """
     names = [format_author(name) for name in (authors or []) if name]
     if not names:
         return ""

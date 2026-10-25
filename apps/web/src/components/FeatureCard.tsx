@@ -9,6 +9,7 @@ const STATUS_STYLE: Record<Feature["status"], string> = {
   done: "bg-emerald-100 text-emerald-700",
 };
 
+/** 功能卡片：图标、编号、状态徽标、一句话说明，点击进入对应功能页。 */
 export function FeatureCard({ feature, index = 0 }: { feature: Feature; index?: number }) {
   return (
     <Link

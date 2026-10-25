@@ -19,6 +19,7 @@ const TABS = [
   },
 ];
 
+/** 整合模块的两个页签：多部分整合 / 单文档分析。 */
 export function ModeTabs({ active }: { active: "multi" | "single" }) {
   return (
     <div className="mt-5 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">

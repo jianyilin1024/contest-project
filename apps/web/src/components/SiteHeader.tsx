@@ -12,6 +12,7 @@ const NAV: { href: string; label: string; icon: IconName }[] = [
   { href: "/about", label: "关于", icon: "info" },
 ];
 
+/** 全站页头：品牌标识 + 主导航 + 进入工作台入口。 */
 export function SiteHeader() {
   const pathname = usePathname();
 

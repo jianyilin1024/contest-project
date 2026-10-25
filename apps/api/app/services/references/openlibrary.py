@@ -20,6 +20,11 @@ TIMEOUT = 6
 
 
 async def search_books(query: str, limit: int = 4) -> list[ReferenceRecord]:
+    """在 Open Library 检索图书。
+
+    专门用来补齐「科普读物、教材、文学作品」这类非学术引用——学术文献走 OpenAlex，
+    只靠学术库会漏掉所有没有 DOI 的书。
+    """
     params = {
         "q": query,
         "limit": max(1, min(limit, 10)),

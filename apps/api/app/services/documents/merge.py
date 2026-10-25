@@ -326,6 +326,11 @@ def find_term_conflicts(documents: list[ParsedDocument]) -> list[dict]:
 
 
 def to_markdown(nodes: list[Node], title: str, document_count: int) -> str:
+    """把 IR 渲染成 Markdown。
+
+    标题层级整体下移一级（level + 1），因为成稿总标题占用了 `#`；
+    否则各章节的一级标题会与成稿标题同级，层级就塌了。
+    """
     lines: list[str] = [f"# {title}", ""]
     lines.append(f"> 由 {document_count} 份文稿合并生成，标题层级与编号已统一。")
     lines.append("")
@@ -358,6 +363,11 @@ def merge_documents(
     *,
     title: str = "合并文稿",
 ) -> MergeOutcome:
+    """合并多份文稿的主入口。
+
+    章节顺序按传入顺序；标题优先取 chapter_titles（用户可改），否则用文稿内标题。
+    重复段落与术语冲突只产出提示，不自动删改内容——合并可以自动，改内容必须人来定。
+    """
     if not documents:
         raise ValueError("至少需要一份文稿")
 
