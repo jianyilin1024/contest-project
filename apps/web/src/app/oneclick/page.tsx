@@ -7,7 +7,9 @@ import { Icon } from "@/components/Icons";
 import { MarkdownPreview } from "@/components/MarkdownPreview";
 import {
   renderDocx,
-  runOneClick,
+  runOneClickStream,
+  type AgentPlan,
+  type CheckItem,
   type OneClickResponse,
   type PipelineStep,
 } from "@/lib/api";
@@ -40,6 +42,10 @@ export default function OneClickPage() {
   const [findReferences, setFindReferences] = useState(true);
   const [referenceLimit, setReferenceLimit] = useState(8);
   const [result, setResult] = useState<OneClickResponse | null>(null);
+  const [plan, setPlan] = useState<string[]>([]);
+  const [steps, setSteps] = useState<Record<string, PipelineStep>>({});
+  const [agentPlan, setAgentPlan] = useState<AgentPlan | null>(null);
+  const [checks, setChecks] = useState<CheckItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
@@ -60,8 +66,13 @@ export default function OneClickPage() {
       })),
     ]);
     setResult(null);
+    setPlan([]);
+    setSteps({});
     setError("");
   };
+
+  // 第一个还没回报的步骤视为"进行中"
+  const runningIndex = plan.findIndex((name) => !steps[name]);
 
   const run = async () => {
     if (entries.length === 0) {
@@ -71,12 +82,39 @@ export default function OneClickPage() {
     setLoading(true);
     setError("");
     setResult(null);
+    setPlan([]);
+    setSteps({});
+    setAgentPlan(null);
+    setChecks([]);
     try {
-      const data = await runOneClick(
+      const data = await runOneClickStream(
         entries.map((entry) => entry.file),
         entries.map((entry) => ({ author: entry.author, title: entry.title })),
         title || "合并文稿",
         { deai, addTransitions, findReferences, referenceLimit },
+        (event) => {
+          if (event.type === "plan") {
+            setPlan(event.steps);
+          } else if (event.type === "step") {
+            setSteps((prev) => ({ ...prev, [event.step.name]: event.step }));
+          } else if (event.type === "agent") {
+            setAgentPlan(event.plan);
+          } else if (event.type === "verify") {
+            setChecks(event.checks);
+          } else if (event.type === "result") {
+            setResult(event.data);
+            // 排版导出是前端点击下载才发生的动作，结果到达即视为就绪
+            setSteps((prev) => ({
+              ...prev,
+              "排版导出": {
+                name: "排版导出",
+                status: "ok",
+                detail: "成稿已就绪，可下载 Word",
+                elapsed_ms: 0,
+              },
+            }));
+          }
+        },
       );
       setResult(data);
     } catch (err) {
@@ -281,26 +319,65 @@ export default function OneClickPage() {
         )}
       </section>
 
-      {result && (
-        <div className="mt-8 space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-sm font-bold text-slate-800">成稿完成</h2>
-              <span className="text-xs text-slate-500">总耗时 {(result.elapsed_ms / 1000).toFixed(1)} 秒</span>
-            </div>
-            <ol className="mt-4 space-y-2">
-              {result.steps.map((step) => (
-                <li key={step.name} className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 px-3 py-2">
-                  <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${STATUS_STYLE[step.status]}`}>
-                    {STATUS_LABEL[step.status]}
+      {plan.length > 0 && (
+        <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-bold text-slate-800">
+              执行流水线
+              {result && (
+                <span className="ml-2 rounded-md bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-700">
+                  完成 · {(result.elapsed_ms / 1000).toFixed(1)} 秒
+                </span>
+              )}
+            </h2>
+            {loading && (
+              <span className="flex items-center gap-1.5 text-xs text-indigo-600">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
+                实时执行中
+              </span>
+            )}
+          </div>
+          <ol className="mt-4 space-y-2">
+            {plan.map((name, index) => {
+              const step = steps[name];
+              const running = !step && index === runningIndex && loading;
+              const tone = running
+                ? "border-indigo-300 bg-indigo-50/50"
+                : step
+                  ? "border-slate-200"
+                  : "border-slate-100 opacity-60";
+              return (
+                <li
+                  key={name}
+                  className={"flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2.5 transition " + tone}
+                >
+                  {step ? (
+                    <span
+                      className={"rounded-md px-1.5 py-0.5 text-[11px] font-medium " + STATUS_STYLE[step.status]}
+                    >
+                      {STATUS_LABEL[step.status]}
+                    </span>
+                  ) : running ? (
+                    <span className="flex items-center gap-1.5 rounded-md bg-indigo-100 px-1.5 py-0.5 text-[11px] font-medium text-indigo-700">
+                      <span className="h-2 w-2 animate-spin rounded-full border border-indigo-500/40 border-t-indigo-600" />
+                      进行中
+                    </span>
+                  ) : (
+                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-400">
+                      等待
+                    </span>
+                  )}
+                  <span className="text-sm font-medium text-slate-800">{name}</span>
+                  <span className="min-w-0 flex-1 truncate text-xs text-slate-500">
+                    {step ? step.detail : ""}
                   </span>
-                  <span className="text-sm font-medium text-slate-800">{step.name}</span>
-                  <span className="min-w-0 flex-1 truncate text-xs text-slate-500">{step.detail}</span>
-                  <span className="text-xs tabular-nums text-slate-400">{step.elapsed_ms}ms</span>
+                  {step && <span className="text-xs tabular-nums text-slate-400">{step.elapsed_ms}ms</span>}
                 </li>
-              ))}
-            </ol>
-            <div className="mt-4 flex flex-wrap gap-3">
+              );
+            })}
+          </ol>
+          {result && (
+            <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
               <button
                 type="button"
                 onClick={download}
@@ -318,7 +395,91 @@ export default function OneClickPage() {
                 {showPreview ? "收起预览" : "查看成稿预览"}
               </button>
             </div>
-          </section>
+          )}
+          {result && result.warnings.length > 0 && (
+            <ul className="mt-3 space-y-1">
+              {result.warnings.map((warning) => (
+                <li key={warning} className="text-xs text-amber-700">· {warning}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {agentPlan && (
+        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-bold text-slate-800">
+            Agent 决策
+            <span className="ml-2 rounded-md bg-violet-100 px-1.5 py-0.5 text-xs font-medium text-violet-700">
+              {agentPlan.source === "model"
+                ? "模型规划"
+                : agentPlan.source === "fallback"
+                  ? "规划失败 · 沿用用户设置"
+                  : "用户指定"}
+            </span>
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{agentPlan.reasoning}</p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <span
+              className={
+                "rounded-full border px-2.5 py-1 " +
+                (agentPlan.need_transitions
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                  : "border-slate-200 text-slate-400")
+              }
+            >
+              {agentPlan.need_transitions ? "补写过渡段" : "跳过过渡段"}
+            </span>
+            <span
+              className={
+                "rounded-full border px-2.5 py-1 " +
+                (agentPlan.need_references
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                  : "border-slate-200 text-slate-400")
+              }
+            >
+              {agentPlan.need_references
+                ? "检索参考文献（" + agentPlan.reference_limit + " 条）"
+                : "跳过参考文献"}
+            </span>
+          </div>
+          {agentPlan.transition_hint && (
+            <p className="mt-2 text-xs text-slate-500">过渡判断：{agentPlan.transition_hint}</p>
+          )}
+        </section>
+      )}
+
+      {checks.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-bold text-slate-800">
+            自检结果
+            <span
+              className={
+                "ml-2 rounded-md px-1.5 py-0.5 text-xs font-medium " +
+                (checks.every((item) => item.ok)
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-amber-100 text-amber-700")
+              }
+            >
+              {checks.filter((item) => item.ok).length}/{checks.length} 通过
+            </span>
+          </h2>
+          <ul className="mt-3 space-y-1.5">
+            {checks.map((item) => (
+              <li key={item.name} className="flex flex-wrap items-center gap-2 text-xs">
+                <span className={item.ok ? "text-emerald-600" : "text-amber-600"}>
+                  {item.ok ? "✓" : "!"}
+                </span>
+                <span className="font-medium text-slate-700">{item.name}</span>
+                <span className="text-slate-500">{item.detail}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {result && (
+        <div className="mt-6 space-y-6">
 
           {result.references.inserted > 0 && (
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

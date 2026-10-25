@@ -146,6 +146,15 @@ class FakeProvider:
 
     async def structured(self, messages, schema, **kwargs):  # noqa: ANN001, ANN003
         required = schema.get("required", [])
+        if "need_transitions" in required:
+            # Agent 规划步骤
+            return {
+                "need_transitions": True,
+                "need_references": True,
+                "reference_limit": 8,
+                "transition_hint": "章节之间缺少承接",
+                "reasoning": "需要补过渡并检索文献",
+            }
         if "boundaries" in required:
             return {
                 "boundaries": [

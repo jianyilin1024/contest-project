@@ -510,6 +510,8 @@ export type OneClickResponse = {
   duplicates: unknown[];
   terms: unknown[];
   warnings: string[];
+  plan: AgentPlan;
+  checks: CheckItem[];
   transitions: { candidates: number; needed: number; applied: number; skipped: boolean };
   references: {
     query: string;
@@ -678,4 +680,112 @@ export async function assembleRewrite(
     throw new Error(await readError(response));
   }
   return (await response.json()) as { markdown: string; applied: number };
+}
+/* ==================== 一键成稿（SSE 流式） ==================== */
+
+export type AgentPlan = {
+  need_transitions: boolean;
+  need_references: boolean;
+  reference_limit: number;
+  transition_hint?: string;
+  reasoning: string;
+  source?: "model" | "user" | "fallback";
+};
+
+export type CheckItem = { name: string; ok: boolean; detail: string };
+
+export type PipelineEvent =
+  | { type: "plan"; steps: string[] }
+  | { type: "step"; step: PipelineStep }
+  | { type: "agent"; plan: AgentPlan }
+  | { type: "verify"; checks: CheckItem[] }
+  | { type: "result"; data: OneClickResponse }
+  | { type: "error"; detail: string };
+
+/**
+ * 与服务端 /oneclick/stream 对接，边执行边回调事件。
+ *
+ * 不用 EventSource：接口需要 POST + multipart，只能自己解析 SSE 帧。
+ */
+export async function runOneClickStream(
+  files: File[],
+  meta: { author: string; title: string }[],
+  title: string,
+  options: { deai: boolean; addTransitions: boolean; findReferences: boolean; referenceLimit: number },
+  onEvent: (event: PipelineEvent) => void,
+): Promise<OneClickResponse> {
+  const form = new FormData();
+  for (const file of files) {
+    form.append("files", file);
+  }
+  form.append("meta", JSON.stringify(meta));
+  form.append("title", title);
+  form.append("deai", String(options.deai));
+  form.append("add_transitions", String(options.addTransitions));
+  form.append("find_references", String(options.findReferences));
+  form.append("reference_limit", String(options.referenceLimit));
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/pipeline/oneclick/stream`, {
+    method: "POST",
+    body: form,
+  });
+  if (!response.ok || !response.body) {
+    throw new Error(await readError(response));
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let result: OneClickResponse | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let boundary = buffer.indexOf("\n\n");
+    while (boundary >= 0) {
+      const frame = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      boundary = buffer.indexOf("\n\n");
+
+      let eventName = "message";
+      const dataLines: string[] = [];
+      for (const line of frame.split("\n")) {
+        if (line.startsWith("event:")) {
+          eventName = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
+          dataLines.push(line.slice(5).trim());
+        }
+      }
+      if (dataLines.length === 0) continue;
+      let payload: unknown;
+      try {
+        payload = JSON.parse(dataLines.join("\n"));
+      } catch {
+        continue;
+      }
+      if (eventName === "result") {
+        result = payload as OneClickResponse;
+        onEvent({ type: "result", data: result });
+      } else if (eventName === "step") {
+        onEvent({ type: "step", step: payload as PipelineStep });
+      } else if (eventName === "plan") {
+        onEvent({ type: "plan", steps: (payload as { steps: string[] }).steps });
+      } else if (eventName === "agent") {
+        onEvent({ type: "agent", plan: payload as AgentPlan });
+      } else if (eventName === "verify") {
+        onEvent({ type: "verify", checks: (payload as { checks: CheckItem[] }).checks });
+      } else if (eventName === "error") {
+        const detail = (payload as { detail?: string }).detail ?? "生成失败";
+        onEvent({ type: "error", detail });
+        throw new Error(detail);
+      }
+    }
+  }
+
+  if (!result) {
+    throw new Error("连接中断，未收到完整结果");
+  }
+  return result;
 }
