@@ -16,6 +16,7 @@ from app.schemas.references import (
     ReferenceSearchResponse,
 )
 from app.services.documents.references import find_reference_section
+from app.services.references.bibtex import format_bibtex_entries
 from app.services.references.gbt import format_entries
 from app.services.references.sources import search_all
 
@@ -39,11 +40,17 @@ async def search_references(payload: ReferenceSearchRequest) -> ReferenceSearchR
             detail="没有检索到相关文献。可以换用更具体的关键词，或改用英文检索（学术库以英文文献为主）。",
         )
     entries = format_entries(records)
+    # 同时给出 BibTeX：写论文用 GB/T 7714，投稿或 LaTeX 作业用 BibTeX
+    bibtex = format_bibtex_entries(records)
+    for entry, bib in zip(entries, bibtex, strict=False):
+        entry["bibtex"] = bib["text"]
+
     logger.info("文献检索完成 query=%s hits=%d", payload.query, len(entries))
     return ReferenceSearchResponse(
         query=payload.query,
         total=len(entries),
         entries=[ReferenceEntryOut(**entry) for entry in entries],
+        bibtex="\n".join(item["text"] for item in bibtex),
     )
 
 

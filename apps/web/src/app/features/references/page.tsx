@@ -14,6 +14,7 @@ export default function ReferencesPage() {
   const [entries, setEntries] = useState<CitationEntry[]>([]);
   const [edited, setEdited] = useState<Record<number, string>>({});
   const [sources, setSources] = useState<string[]>(["academic", "book", "web"]);
+  const [format, setFormat] = useState<"gbt" | "bibtex">("gbt");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -45,9 +46,11 @@ export default function ReferencesPage() {
 
   const copyAll = async () => {
     try {
-      await navigator.clipboard.writeText(
-        entries.map((entry) => edited[entry.index] ?? entry.text).join("\n"),
-      );
+      const payload =
+        format === "bibtex"
+          ? entries.map((entry) => entry.bibtex).join("\n")
+          : entries.map((entry) => edited[entry.index] ?? entry.text).join("\n");
+      await navigator.clipboard.writeText(payload);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -174,25 +177,48 @@ export default function ReferencesPage() {
         <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-bold text-slate-800">检索结果（{entries.length} 条）</h2>
-            <button
-              type="button"
-              onClick={copyAll}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
-            >
-              {copied ? "已复制" : "复制全部"}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {(["gbt", "bibtex"] as const).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setFormat(key)}
+                  className={
+                    "rounded-lg border px-2.5 py-1 text-xs transition " +
+                    (format === key
+                      ? "border-violet-400 bg-violet-50 text-violet-700"
+                      : "border-slate-300 text-slate-500")
+                  }
+                >
+                  {key === "gbt" ? "GB/T 7714" : "BibTeX"}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={copyAll}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-400"
+              >
+                {copied ? "已复制" : "复制全部"}
+              </button>
+            </div>
           </div>
           <ul className="mt-3 space-y-2">
             {entries.map((entry) => (
               <li key={entry.index} className="rounded-xl border border-slate-200 p-3">
-                <textarea
-                  value={edited[entry.index] ?? entry.text}
-                  onChange={(event) =>
-                    setEdited((prev) => ({ ...prev, [entry.index]: event.target.value }))
-                  }
-                  rows={2}
-                  className="w-full resize-y rounded-lg border border-transparent bg-slate-50 px-2 py-1.5 text-sm leading-6 text-slate-800 outline-none focus:border-violet-300 focus:bg-white"
-                />
+                {format === "bibtex" ? (
+                  <pre className="overflow-x-auto rounded-lg bg-slate-900 px-3 py-2 text-xs leading-5 text-slate-100">
+{entry.bibtex}
+                  </pre>
+                ) : (
+                  <textarea
+                    value={edited[entry.index] ?? entry.text}
+                    onChange={(event) =>
+                      setEdited((prev) => ({ ...prev, [entry.index]: event.target.value }))
+                    }
+                    rows={2}
+                    className="w-full resize-y rounded-lg border border-transparent bg-slate-50 px-2 py-1.5 text-sm leading-6 text-slate-800 outline-none focus:border-violet-300 focus:bg-white"
+                  />
+                )}
                 <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                   <span className="rounded-md bg-slate-100 px-1.5 py-0.5">{entry.record.kind}</span>
                   <span>被引 {entry.record.cited_by}</span>

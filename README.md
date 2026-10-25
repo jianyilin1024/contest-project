@@ -25,8 +25,8 @@
 |---|---|
 | 前端 | Next.js 16（App Router）+ React 19 + TypeScript + Tailwind CSS 4 |
 | 后端 | Python 3.11 + FastAPI + SQLAlchemy 2.0（异步）+ Pydantic v2 |
-| 数据库 | PostgreSQL 16 + pgvector |
-| 缓存/队列 | Redis 7 |
+| 数据库 | PostgreSQL 16（pgvector 镜像，向量检索暂未启用） |
+| 依赖 | Redis 7（用于就绪探针，未承载缓存职责） |
 | 大模型 | OpenAI 兼容协议（DeepSeek / 通义 / 智谱 / OpenAI 可切换） |
 | 文档处理 | pandoc + citeproc + CSL、docxtpl、LibreOffice（后续阶段接入） |
 | 部署 | Docker Compose + Nginx + GitHub Actions |

@@ -453,6 +453,8 @@ export type ReferenceRecord = {
 export type CitationEntry = {
   index: number;
   text: string;
+  /** 同一文献的 BibTeX 形式 */
+  bibtex: string;
   record: ReferenceRecord;
 };
 
@@ -460,6 +462,8 @@ export type ReferenceSearchResponse = {
   query: string;
   total: number;
   entries: CitationEntry[];
+  /** 全部条目的 BibTeX，便于一次性复制 */
+  bibtex: string;
 };
 
 export async function searchReferences(

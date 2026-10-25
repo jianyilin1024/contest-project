@@ -5,6 +5,7 @@
 """
 
 import re
+from datetime import date
 
 from app.services.references.sources import ReferenceRecord
 
@@ -117,6 +118,8 @@ def format_gbt(record: ReferenceRecord) -> str:
     if record.doi:
         segments.append(f"DOI: {record.doi}.")
     elif record.url and record.kind in ("web", "other"):
+        # 国标对电子资源要求给出引用日期，缺了这条格式不完整
+        segments.append(f"[引用日期 {date.today().isoformat()}].")
         segments.append(_ensure_dot(record.url))
 
     return " ".join(segment for segment in segments if segment)

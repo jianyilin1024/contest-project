@@ -22,6 +22,7 @@ class ReferenceRecordOut(BaseModel):
 class ReferenceEntryOut(BaseModel):
     index: int
     text: str
+    bibtex: str = ""
     record: ReferenceRecordOut
 
 
@@ -36,6 +37,8 @@ class ReferenceSearchResponse(BaseModel):
     query: str
     total: int
     entries: list[ReferenceEntryOut] = Field(default_factory=list)
+    # 全部条目的 BibTeX 文本，便于一次性复制
+    bibtex: str = ""
 
 
 class ReferenceInsertRequest(BaseModel):

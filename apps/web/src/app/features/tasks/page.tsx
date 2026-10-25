@@ -36,6 +36,7 @@ export default function TasksPage() {
   const [current, setCurrent] = useState<Project | null>(null);
   const [newProject, setNewProject] = useState("");
   const [newMember, setNewMember] = useState("");
+  const [newRole, setNewRole] = useState("成员");
   const [taskTitle, setTaskTitle] = useState("");
   const [taskMember, setTaskMember] = useState<number | "">("");
   const [taskDue, setTaskDue] = useState("");
@@ -77,6 +78,11 @@ export default function TasksPage() {
   };
 
   const projectId = current?.id ?? 0;
+  // 逾期的判定放在前端：只有这里知道"今天"是什么时候
+  const today = new Date().toISOString().slice(0, 10);
+  const isOverdue = (task: Task) =>
+    Boolean(task.due_date) && task.status !== "done" && (task.due_date as string) < today;
+  const overdueCount = current ? current.tasks.filter(isOverdue).length : 0;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -170,6 +176,11 @@ export default function TasksPage() {
                     <h2 className="text-base font-bold text-slate-900">{current.name}</h2>
                     <p className="text-xs text-slate-500">
                       待办 {current.stats.todo} · 进行中 {current.stats.doing} · 已完成 {current.stats.done}
+                      {overdueCount > 0 && (
+                        <span className="ml-2 rounded-md bg-rose-100 px-1.5 py-0.5 text-rose-700">
+                          逾期 {overdueCount}
+                        </span>
+                      )}
                     </p>
                   </div>
                   <button
@@ -195,6 +206,9 @@ export default function TasksPage() {
                       className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
                     >
                       {member.name}
+                      {member.role === "组长" && (
+                        <span className="rounded bg-emerald-100 px-1 text-[10px] text-emerald-700">组长</span>
+                      )}
                       <button
                         type="button"
                         onClick={() =>
@@ -216,12 +230,20 @@ export default function TasksPage() {
                     placeholder="成员名"
                     className="w-24 rounded-lg border border-slate-300 px-2 py-1 text-xs outline-none focus:border-emerald-400"
                   />
+                  <select
+                    value={newRole}
+                    onChange={(event) => setNewRole(event.target.value)}
+                    className="rounded-lg border border-slate-300 px-1.5 py-1 text-xs"
+                  >
+                    <option value="成员">成员</option>
+                    <option value="组长">组长</option>
+                  </select>
                   <button
                     type="button"
                     disabled={!newMember.trim()}
                     onClick={() =>
                       run(async () => {
-                        await addMember(projectId, newMember.trim());
+                        await addMember(projectId, newMember.trim(), newRole);
                         setNewMember("");
                         await open(projectId);
                         await refreshList();
@@ -232,6 +254,25 @@ export default function TasksPage() {
                     添加
                   </button>
                 </div>
+
+                {current.members.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                    {current.members.map((member) => {
+                      const mine = current.tasks.filter((task) => task.member_id === member.id);
+                      const done = mine.filter((task) => task.status === "done").length;
+                      const late = mine.filter((task) => isOverdue(task)).length;
+                      return (
+                        <span
+                          key={member.id}
+                          className="rounded-md bg-slate-50 px-2 py-1 text-slate-600"
+                        >
+                          {member.name}：{done}/{mine.length} 完成
+                          {late > 0 && <span className="ml-1 text-rose-600">逾期 {late}</span>}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
 
                 <div className="mt-4 flex flex-wrap items-end gap-2 border-t border-slate-100 pt-3">
                   <input
@@ -294,7 +335,12 @@ export default function TasksPage() {
                             <p className="text-sm font-medium text-slate-800">{task.title}</p>
                             <p className="mt-1 text-xs text-slate-500">
                               {task.member_name || "未指派"}
-                              {task.due_date ? ` · 截止 ${task.due_date}` : ""}
+                              {task.due_date ? (
+                                <span className={isOverdue(task) ? "ml-1 text-rose-600" : "ml-1"}>
+                                  · 截止 {task.due_date}
+                                  {isOverdue(task) ? "（已逾期）" : ""}
+                                </span>
+                              ) : null}
                             </p>
                             <div className="mt-2 flex flex-wrap gap-1">
                               {COLUMNS.filter((item) => item.key !== task.status).map((item) => (

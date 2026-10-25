@@ -14,21 +14,23 @@ const STACK = [
   { name: "React 19 + TypeScript", role: "界面与类型安全" },
   { name: "Tailwind CSS 4", role: "样式与设计系统" },
   { name: "FastAPI + Pydantic v2", role: "后端接口与校验" },
-  { name: "PostgreSQL + pgvector", role: "业务数据与向量检索" },
-  { name: "Redis", role: "缓存与异步任务队列" },
+  { name: "PostgreSQL", role: "业务数据（项目 / 成员 / 任务）" },
+  { name: "Redis", role: "依赖健康检查" },
   { name: "Docker Compose + Nginx", role: "部署与反向代理" },
-  { name: "OpenAlex / Crossref", role: "学术文献元数据" },
+  { name: "DeepSeek", role: "大模型与联网检索" },
+  { name: "OpenAlex / Crossref / Open Library", role: "学术与图书元数据" },
 ];
 
 const ROADMAP = [
   { stage: "P0", title: "需求分析与实施计划", status: "done" },
   { stage: "P1", title: "工程骨架与首页设计", status: "done" },
-  { stage: "P2", title: "数据模型 + 认证 + 项目/成员", status: "todo" },
-  { stage: "P3", title: "文档导入与结构化解析", status: "todo" },
-  { stage: "P4", title: "大模型网关", status: "todo" },
-  { stage: "P5–P9", title: "F1 整合 → F5 排版（主链路）", status: "todo" },
-  { stage: "P10–P11", title: "F6 数据助手 / F7 参考文献助手", status: "todo" },
-  { stage: "P12", title: "联调、部署与演示材料", status: "todo" },
+  { stage: "P2", title: "数据模型 + 项目 / 成员 / 任务", status: "done" },
+  { stage: "P3", title: "文档导入与结构化解析", status: "done" },
+  { stage: "P4", title: "大模型网关（结构化输出 + 流式）", status: "done" },
+  { stage: "P5–P9", title: "F1 整合 → F5 排版（主链路）", status: "done" },
+  { stage: "P10–P11", title: "F6 数据助手 / F7 参考文献助手", status: "done" },
+  { stage: "P12", title: "一键成稿 Agent + MCP 服务端 + 线上部署", status: "done" },
+  { stage: "P13", title: "演示视频与技术文档 PDF", status: "todo" },
 ];
 
 export default function AboutPage() {

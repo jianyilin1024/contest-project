@@ -228,3 +228,67 @@ def test_openapi_exposes_new_routes() -> None:
     paths = client.get("/openapi.json").json()["paths"]
     assert "/api/v1/references/search" in paths
     assert "/api/v1/pipeline/oneclick" in paths
+
+# ---------------- BibTeX ----------------
+
+from app.services.references.bibtex import (  # noqa: E402
+    citation_key,
+    format_bibtex,
+    format_bibtex_entries,
+)
+
+
+def test_citation_key_western() -> None:
+    record = ReferenceRecord(title="Deep Few-Shot Learning", authors=["Jane Smith"], year=2018)
+    # 取姓（最后一个词）+ 年份 + 标题首个英文词
+    assert citation_key(record) == "Smith2018Deep"
+
+
+def test_citation_key_chinese_author() -> None:
+    record = ReferenceRecord(title="中国科幻研究", authors=["刘慈欣"], year=2020)
+    # 中文名无法直接做 LaTeX 键，用 zh 占位
+    assert citation_key(record) == "zh2020"
+
+
+def test_bibtex_journal_entry() -> None:
+    record = ReferenceRecord(
+        title="Deep Few-Shot Learning",
+        authors=["Jane Smith", "John Doe"],
+        year=2018,
+        venue="IEEE TGRS",
+        volume="57",
+        issue="4",
+        pages="1056-1065",
+        doi="10.1109/TGRS.2018.1",
+        kind="journal",
+    )
+    text = format_bibtex(record)
+    assert text.startswith("@article{Smith2018Deep,")
+    assert "author = {Jane Smith and John Doe}" in text
+    assert "journal = {IEEE TGRS}" in text
+    assert "pages = {1056--1065}" in text
+    assert text.rstrip().endswith("}")
+
+
+def test_bibtex_omits_empty_fields() -> None:
+    record = ReferenceRecord(title="某网页", year=2024, url="https://x.test/a", kind="web")
+    text = format_bibtex(record)
+    assert "volume" not in text
+    assert "@misc{" in text
+
+
+def test_bibtex_duplicate_keys_get_suffix() -> None:
+    record = ReferenceRecord(title="中国科幻研究", authors=["刘慈欣"], year=2020, kind="book")
+    items = format_bibtex_entries([record, record])
+    assert items[0]["key"] == "zh2020"
+    assert items[1]["key"] == "zh2020b"
+
+
+def test_search_endpoint_returns_bibtex(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def fake_search(queries, limit=8, **kwargs):  # noqa: ANN001, ANN003
+        return [_fake_record()]
+
+    monkeypatch.setattr(references_endpoint, "search_all", fake_search)
+    body = client.post("/api/v1/references/search", json={"query": "few-shot"}).json()
+    assert body["entries"][0]["bibtex"].startswith("@article{")
+    assert "@article{" in body["bibtex"]
