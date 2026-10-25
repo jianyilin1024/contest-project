@@ -29,6 +29,9 @@ APIkey.txt
 secrets*
 !*example*
 
+# 主办方提供的赛题材料，不随公开仓库发布
+比赛要求.txt
+
 # 编辑器 / 系统
 .idea/
 .vscode/
