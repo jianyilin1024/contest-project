@@ -115,7 +115,15 @@ async def find_spots(paragraphs: list[str], provider: LLMProvider) -> list[dict]
                 "query": query[:120],
             }
         )
-    return spots[:MAX_SPOTS]
+
+    # 去重：模型常把同一句话拆成一条整句 + 一条片段，只保留更长的那条
+    deduped: list[dict] = []
+    for spot in spots:
+        text = spot["sentence"]
+        if any(text != other["sentence"] and text in other["sentence"] for other in spots):
+            continue
+        deduped.append(spot)
+    return deduped[:MAX_SPOTS]
 
 
 async def _search_one(spot: dict, semaphore: asyncio.Semaphore) -> dict:
