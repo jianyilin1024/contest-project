@@ -9,13 +9,13 @@ import { FEATURES } from "@/lib/features";
 const FLOW = [
   { step: "01", title: "各自写作", desc: "成员认领章节，各自提交", icon: "checkSquare" as const },
   { step: "02", title: "一键整合", desc: "归一结构、标记冲突", icon: "layers" as const },
-  { step: "03", title: "统一风格", desc: "过渡衔接 + 术语统一", icon: "wand" as const },
+  { step: "03", title: "统一风格", desc: "过渡衔接 + 逐段改写", icon: "wand" as const },
   { step: "04", title: "规范导出", desc: "排版 + 引用一键成稿", icon: "layout" as const },
 ];
 
 const STATS = [
   { value: "7", label: "功能分区" },
-  { value: "3", label: "AI 能力层" },
+  { value: "3", label: "底层能力层" },
   { value: "1", label: "条主链路" },
   { value: "0", label: "元起步成本" },
 ];
@@ -159,7 +159,7 @@ export default function HomePage() {
         <div className="rounded-3xl border border-slate-200 bg-white/80 p-8 shadow-sm backdrop-blur">
           <h2 className="text-xl font-bold text-slate-900">主链路：从分工到成稿</h2>
           <p className="mt-2 text-sm text-slate-500">
-            P5–P9 阶段打通的这条闭环，已经能完整讲出「四人分头写 → 合成一篇规范论文」的故事。
+            这条闭环已经能完整讲出「四人分头写 → 合成一篇规范论文」的整个过程。
           </p>
 
           <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

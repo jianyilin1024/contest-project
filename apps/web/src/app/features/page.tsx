@@ -14,17 +14,17 @@ const LAYERS = [
   {
     title: "文档层",
     desc: "导入、解析、结构化表示（IR）",
-    items: ["docx / Markdown 解析", "章节树与题注识别", "版本快照与回滚"],
+    items: ["docx / Markdown / 纯文本解析", "标题层级与编号归一", "重复段落与术语冲突检测"],
   },
   {
     title: "AI 能力层",
     desc: "统一的大模型网关与提示词库",
-    items: ["多厂商可切换", "流式输出", "结构化 JSON 输出"],
+    items: ["结构化 JSON 输出（截断重试）", "推理模型与流式输出", "失败降级，不阻断主流程"],
   },
   {
     title: "检索层",
     desc: "联网搜索与学术元数据",
-    items: ["OpenAlex / Crossref", "网页搜索兜底", "来源溯源记录"],
+    items: ["OpenAlex / Crossref / Open Library", "联网搜索（DeepSeek）", "来源白名单校验"],
   },
 ];
 
@@ -42,8 +42,7 @@ export default function FeaturesPage() {
       <header className="mt-6">
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">功能分区</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600">
-          七个模块按实施顺序编号（F1–F7），每个模块对应一个独立的入口页面。
-          七个模块均已上线，点进去即可使用。
+          七个模块按功能编号 F1–F7 排列，每个模块都有独立的操作页面，点进去即可使用。
         </p>
       </header>
 

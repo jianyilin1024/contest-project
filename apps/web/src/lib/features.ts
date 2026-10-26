@@ -15,14 +15,12 @@ export type Feature = {
   icon: IconName;
   /** Tailwind 渐变色，用于图标底板 */
   accent: string;
-  /** 所属实施阶段 */
-  stage: string;
   status: FeatureStatus;
   /** 计划具备的能力 */
   capabilities: string[];
   input: string;
   output: string;
-  /** 是否已有独立实现的页面（有则不再走通用的 [slug] 占位页） */
+  /** 是否已有独立页面（七个功能当前全部为 true） */
   dedicated?: boolean;
 };
 
@@ -36,7 +34,6 @@ export const FEATURES: Feature[] = [
       "小组成员分头写作时，标题层级、编号方式、段落结构往往各不相同。多部分整合负责把它们收拢成一份可继续编辑的完整文稿，并在合并过程中标出重复内容与相互冲突的说法。",
     icon: "layers",
     accent: "from-indigo-500 to-blue-500",
-    stage: "P5",
     status: "done",
     dedicated: true,
     capabilities: [
@@ -57,7 +54,6 @@ export const FEATURES: Feature[] = [
       "把分工从聊天记录里搬到看板上：每名成员认领章节、更新状态、设置截止时间。逾期任务会被标红提醒，并按成员统计完成情况，汇报时可直接展示。",
     icon: "checkSquare",
     accent: "from-emerald-500 to-teal-500",
-    stage: "P6",
     status: "done",
     dedicated: true,
     capabilities: [
@@ -78,7 +74,6 @@ export const FEATURES: Feature[] = [
       "章节直接拼接会产生语义断层。该模块分析相邻两节的内容关系，生成二到三个不同语气的过渡段落，承接上文结论并引出下文议题，可一键接受、换个备选，或自己改写。",
     icon: "link",
     accent: "from-amber-500 to-orange-500",
-    stage: "P7",
     status: "done",
     dedicated: true,
     capabilities: [
@@ -99,7 +94,6 @@ export const FEATURES: Feature[] = [
       "把全篇改写为统一的学术书面语：去掉口语与主观表述，统一术语与标点。逐段给出原文与改写对照，可逐段接受或回退；未改动的段落自动不勾选，避免无谓确认。",
     icon: "wand",
     accent: "from-fuchsia-500 to-purple-500",
-    stage: "P8",
     status: "done",
     dedicated: true,
     capabilities: [
@@ -120,7 +114,6 @@ export const FEATURES: Feature[] = [
       "排版是最耗时的收尾工作。该模块以结构化文稿为输入，套用学校或竞赛模板输出规范文档，自动生成目录与页码，并按 GB/T 7714-2015 格式化参考文献。",
     icon: "layout",
     accent: "from-sky-500 to-cyan-500",
-    stage: "P9",
     status: "done",
     dedicated: true,
     capabilities: [
@@ -141,7 +134,6 @@ export const FEATURES: Feature[] = [
       "识别段落中缺失或存疑的数据点，联网检索并抽取可核实的数据，每条结果都必须附带可点开的来源链接。AI 只做建议，是否采用由你决定。",
     icon: "database",
     accent: "from-rose-500 to-pink-500",
-    stage: "P10",
     status: "done",
     dedicated: true,
     capabilities: [
@@ -162,7 +154,6 @@ export const FEATURES: Feature[] = [
       "依据论文概要或大纲，从学术库与联网检索中查找真实文献，自动去重并按 GB/T 7714-2015 或 BibTeX 生成引用条目。文献必须真实可访问，杜绝编造。",
     icon: "book",
     accent: "from-violet-500 to-indigo-500",
-    stage: "P11",
     status: "done",
     dedicated: true,
     capabilities: [

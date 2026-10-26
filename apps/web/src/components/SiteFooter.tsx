@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Icon } from "@/components/Icons";
 import { Logo } from "@/components/Logo";
 
-/** 全站页脚：项目简介、功能快捷入口、当前阶段说明。 */
+/** 全站页脚：项目简介、常用功能快捷入口、源码与关于入口。 */
 export function SiteFooter() {
   return (
     <footer className="mt-20 border-t border-slate-200/80 bg-white/60 backdrop-blur">
@@ -23,7 +23,7 @@ export function SiteFooter() {
 
         <div>
           <h3 className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            功能分区
+            快捷入口
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
             {[

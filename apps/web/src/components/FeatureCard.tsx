@@ -40,8 +40,7 @@ export function FeatureCard({ feature, index = 0 }: { feature: Feature; index?: 
         {feature.tagline}
       </p>
 
-      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-        <span className="text-[11px] font-medium text-slate-400">{feature.stage} 阶段</span>
+      <div className="mt-4 flex items-center justify-end border-t border-slate-100 pt-3">
         <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 transition group-hover:gap-2">
           进入模块
           <Icon name="arrowRight" className="h-3.5 w-3.5" />

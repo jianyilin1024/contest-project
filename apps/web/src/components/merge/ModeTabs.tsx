@@ -6,7 +6,7 @@ const TABS = [
   {
     key: "multi",
     href: "/features/merge",
-    label: "多文档整合",
+    label: "多部分整合",
     hint: "多人各写一部分，合成一份",
     icon: "layers" as const,
   },
