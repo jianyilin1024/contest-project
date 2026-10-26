@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     # 注意：当前为推理模型，会先输出思考过程再输出回答
     llm_model: str = "deepseek-flash"
     llm_timeout: int = 60
+    # 额外请求头（JSON 字符串）。部分网关有路由要求，例如 OpenCode Zen 的
+    # 订阅端点需要 x-opencode-session；值写 "__auto__" 表示进程启动时生成一个 UUID。
+    llm_extra_headers: str = ""
 
     # ---------- 搜索 ----------
     search_provider: str = "deepseek"

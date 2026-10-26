@@ -7,6 +7,7 @@ DeepSeek、通义千问、智谱 GLM、OpenAI 均提供 /chat/completions 接口
 import json
 import logging
 import re
+import uuid
 from collections.abc import AsyncIterator, Iterable, Iterator
 from typing import Any
 
@@ -54,6 +55,30 @@ def extract_json_object(text: str) -> dict[str, Any] | None:
     return None
 
 
+def parse_extra_headers(raw: str) -> dict[str, str]:
+    """解析 LLM_EXTRA_HEADERS。
+
+    值为 "__auto__" 的键会生成一个 UUID——有的网关（如 OpenCode Zen 的订阅端点）
+    要求带会话标识才能路由，但具体取值无关紧要，只要同一进程内保持一致。
+    """
+    raw = (raw or "").strip()
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        logger.warning("LLM_EXTRA_HEADERS 不是合法 JSON，已忽略")
+        return {}
+    if not isinstance(data, dict):
+        return {}
+
+    headers: dict[str, str] = {}
+    for key, value in data.items():
+        text = str(value)
+        headers[str(key)] = str(uuid.uuid4()) if text == "__auto__" else text
+    return headers
+
+
 def iter_sse_data(lines: Iterable[str]) -> Iterator[str]:
     """从 SSE 文本行中提取 data: 负载（按 SSE 规范去掉冒号后的空格）。"""
     for line in lines:
@@ -92,11 +117,15 @@ class OpenAICompatibleProvider(LLMProvider):
         self.base_url = (base_url or settings.llm_base_url).rstrip("/")
         self.model = model or settings.llm_model
         self.timeout = timeout or settings.llm_timeout
+        # 进程内固定：会话标识每次请求都变可能导致网关反复路由失败
+        self.extra_headers = parse_extra_headers(settings.llm_extra_headers)
 
     # ---------------- 内部工具 ----------------
 
     def _headers(self) -> dict[str, str]:
-        return {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+        headers.update(self.extra_headers)
+        return headers
 
     def _payload(self, messages: list[ChatMessage], stream: bool, **kwargs: Any) -> dict[str, Any]:
         payload: dict[str, Any] = {
