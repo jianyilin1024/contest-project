@@ -17,7 +17,7 @@ export function SiteFooter() {
             把多人分头写的作业与论文，合成一篇风格统一、格式规范、引用可靠的成品。
           </p>
           <p className="mt-3 text-xs text-slate-400">
-            七个功能模块已全部上线，一键成稿可将合并、过渡、文献与排版串成一步。
+            四大模块全部上线，一键成稿可将合并、过渡、文献与排版串成一步。
           </p>
         </div>
 
@@ -29,8 +29,8 @@ export function SiteFooter() {
             {[
               { href: "/features/merge", label: "多部分整合" },
               { href: "/features/tasks", label: "分工记录" },
-              { href: "/features/style", label: "用语风格统一" },
-              { href: "/features/references", label: "参考文献助手" },
+              { href: "/features/format", label: "AI 排版" },
+              { href: "/features/citations", label: "引用助手" },
             ].map((item) => (
               <li key={item.href}>
                 <Link

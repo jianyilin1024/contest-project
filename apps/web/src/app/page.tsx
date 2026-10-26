@@ -14,14 +14,14 @@ const FLOW = [
 ];
 
 const STATS = [
-  { value: "7", label: "功能分区" },
+  { value: "4", label: "功能模块" },
   { value: "3", label: "底层能力层" },
   { value: "1", label: "条主链路" },
   { value: "0", label: "元起步成本" },
 ];
 
 /**
- * 首页：一句话定位 + 七个功能入口 + 一键成稿主推。
+ * 首页：一句话定位 + 一键成稿主推 + 模块入口。
  *
  * 纯静态渲染、不请求后端——首页必须在后端异常时也能正常打开。
  */
@@ -37,7 +37,7 @@ export default function HomePage() {
           <div className="animate-fade-up">
             <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/70 px-3 py-1 text-xs font-medium text-indigo-700 shadow-sm backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-              F1–F7 全部上线 · 已部署至线上环境
+              四大模块全部上线 · 已部署至线上环境
             </span>
 
             <h1 className="mt-6 text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl">
@@ -129,30 +129,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= 功能分区 ================= */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">功能分区</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              七个模块覆盖从分工到成稿的完整流程，点击任意卡片即可进入。
-            </p>
-          </div>
-          <Link
-            href="/features"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 transition hover:gap-2.5"
-          >
-            查看总览
-            <Icon name="arrowRight" className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature, index) => (
-            <FeatureCard key={feature.slug} feature={feature} index={index} />
-          ))}
-        </div>
-      </section>
 
       {/* ================= 主链路 ================= */}
       <section className="mx-auto mt-20 max-w-6xl px-4 sm:px-6">

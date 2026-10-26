@@ -1,13 +1,7 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/Icons";
-import { STATUS_LABEL, type Feature } from "@/lib/features";
-
-const STATUS_STYLE: Record<Feature["status"], string> = {
-  planned: "bg-slate-100 text-slate-600",
-  building: "bg-amber-100 text-amber-700",
-  done: "bg-emerald-100 text-emerald-700",
-};
+import { type Feature } from "@/lib/features";
 
 /** 功能卡片：图标、编号、状态徽标、一句话说明，点击进入对应功能页。 */
 export function FeatureCard({ feature, index = 0 }: { feature: Feature; index?: number }) {
@@ -23,22 +17,28 @@ export function FeatureCard({ feature, index = 0 }: { feature: Feature; index?: 
         >
           <Icon name={feature.icon} className="h-5 w-5" />
         </div>
-        <div className="flex items-center gap-2">
-          <span className="rounded-md bg-slate-900/5 px-1.5 py-0.5 text-[11px] font-bold text-slate-500">
-            {feature.code}
-          </span>
-          <span
-            className={`rounded-md px-1.5 py-0.5 text-[11px] font-medium ${STATUS_STYLE[feature.status]}`}
-          >
-            {STATUS_LABEL[feature.status]}
-          </span>
-        </div>
+        <Icon
+          name="arrowUpRight"
+          className="h-4 w-4 text-slate-300 transition group-hover:text-brand-500"
+        />
       </div>
 
       <h3 className="mt-4 text-base font-bold text-slate-900">{feature.title}</h3>
       <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate-500">
         {feature.tagline}
       </p>
+      {feature.includes && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {feature.includes.map((item) => (
+            <span
+              key={item}
+              className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] text-slate-500"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 flex items-center justify-end border-t border-slate-100 pt-3">
         <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 transition group-hover:gap-2">

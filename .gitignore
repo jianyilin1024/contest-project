@@ -38,8 +38,8 @@ secrets*
 .DS_Store
 Thumbs.db
 
-# 运行时数据
-data/
-logs/
+# 运行时数据（只忽略仓库根目录下的，避免误伤 src/app/features/data 这类源码目录）
+/data/
+/logs/
 *.log
-backups/
+/backups/

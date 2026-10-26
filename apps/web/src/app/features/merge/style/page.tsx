@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Icon } from "@/components/Icons";
+import { ModeTabs } from "@/components/merge/ModeTabs";
 import { MarkdownPreview } from "@/components/MarkdownPreview";
 import {
   assembleRewrite,
@@ -111,7 +112,7 @@ export default function StylePage() {
       <nav className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
         <Link href="/" className="transition hover:text-brand-600">首页</Link>
         <Icon name="chevronRight" className="h-3 w-3" />
-        <Link href="/features" className="transition hover:text-brand-600">功能分区</Link>
+        <Link href="/features" className="transition hover:text-brand-600">多部分整合</Link>
         <Icon name="chevronRight" className="h-3 w-3" />
         <span className="font-medium text-slate-700">风格统一</span>
       </nav>
@@ -121,16 +122,14 @@ export default function StylePage() {
           <Icon name="wand" className="h-7 w-7" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-md bg-slate-900/5 px-2 py-0.5 text-xs font-bold text-slate-500">F4</span>
-            <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">可用</span>
-          </div>
           <h1 className="mt-2.5 text-3xl font-extrabold tracking-tight text-slate-900">风格统一</h1>
           <p className="mt-2 text-sm text-slate-500">
             逐段改写成统一的学术书面语，每一段都能单独接受或回退——不是整篇一改到底。
           </p>
         </div>
       </header>
+
+      <ModeTabs active="style" />
 
       <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">

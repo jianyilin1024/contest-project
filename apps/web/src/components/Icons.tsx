@@ -16,7 +16,10 @@ export type IconName =
   | "clock"
   | "home"
   | "grid"
-  | "info";
+  | "info"
+  | "search"
+  | "type"
+  | "arrowUpRight";
 
 const PATHS: Record<IconName, ReactNode> = {
   layers: (
@@ -112,6 +115,25 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 16v-4M12 8h.01" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </>
+  ),
+  type: (
+    <>
+      <path d="M4 7V5h16v2" />
+      <path d="M12 5v14" />
+      <path d="M9 19h6" />
+    </>
+  ),
+  arrowUpRight: (
+    <>
+      <path d="M7 17 17 7" />
+      <path d="M8 7h9v9" />
     </>
   ),
 };

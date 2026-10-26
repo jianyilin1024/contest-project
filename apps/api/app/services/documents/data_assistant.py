@@ -123,11 +123,8 @@ async def detect_gaps(text: str, provider: LLMProvider) -> list[dict]:
         ChatMessage("system", GAP_PROMPT),
         ChatMessage("user", f"段落：\n{text[:1500]}"),
     ]
-    try:
-        result = await provider.structured(messages, GAP_SCHEMA, max_tokens=1200)
-    except LLMError as exc:
-        logger.warning("缺口识别失败: %s", exc)
-        return []
+    # 同引用建议：模型不可用要让用户看见，不能伪装成"没有缺口"
+    result = await provider.structured(messages, GAP_SCHEMA, max_tokens=1200)
 
     gaps = []
     for item in result.get("gaps") or []:

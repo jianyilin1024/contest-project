@@ -53,6 +53,7 @@ export default function OneClickPage() {
   const [steps, setSteps] = useState<Record<string, PipelineStep>>({});
   const [agentPlan, setAgentPlan] = useState<AgentPlan | null>(null);
   const [checks, setChecks] = useState<CheckItem[]>([]);
+  const [autoSaved, setAutoSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
@@ -93,6 +94,7 @@ export default function OneClickPage() {
     setSteps({});
     setAgentPlan(null);
     setChecks([]);
+    setAutoSaved(false);
     try {
       const data = await runOneClickStream(
         entries.map((entry) => entry.file),
@@ -110,6 +112,9 @@ export default function OneClickPage() {
             setChecks(event.checks);
           } else if (event.type === "result") {
             setResult(event.data);
+            // 成稿一到就自动导出 Word——用户点一次"一键生成"即可拿到成品，
+            // 不需要再找下载按钮。浏览器若拦截下载，按钮仍然在。
+            void autoDownload(event.data);
             // 排版导出是前端点击下载才发生的动作，结果到达即视为就绪
             setSteps((prev) => ({
               ...prev,
@@ -128,6 +133,30 @@ export default function OneClickPage() {
       setError(err instanceof Error ? err.message : "生成失败，请稍后重试");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const autoDownload = async (data: OneClickResponse) => {
+    try {
+      const blob = await renderDocx({
+        markdown: data.final_markdown,
+        title: data.title,
+        template: "academic",
+        toc: true,
+        numbering: true,
+        page_numbers: true,
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = data.title + ".docx";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      setAutoSaved(true);
+    } catch {
+      // 自动下载失败不影响流程，用户仍可手动点击下载
     }
   };
 
@@ -392,8 +421,14 @@ export default function OneClickPage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
               >
                 <Icon name="layout" className="h-4 w-4" />
-                {downloading ? "正在排版…" : "下载 Word 成稿"}
+                {downloading ? "正在排版…" : "重新下载 Word 成稿"}
               </button>
+              {autoSaved && (
+                <span className="inline-flex items-center gap-1.5 self-center text-xs text-emerald-600">
+                  <Icon name="check" className="h-3.5 w-3.5" />
+                  已自动下载，可直接提交
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => setShowPreview((prev) => !prev)}

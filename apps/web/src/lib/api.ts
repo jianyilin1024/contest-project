@@ -793,3 +793,41 @@ export async function runOneClickStream(
   }
   return result;
 }
+/* ==================== 引用建议 ==================== */
+
+export type CitationCandidate = {
+  index: number;
+  text: string;
+  bibtex: string;
+  title: string;
+  year: number | null;
+  venue: string;
+  doi: string;
+};
+
+export type CitationSpot = {
+  sentence: string;
+  reason: string;
+  query: string;
+  candidates: CitationCandidate[];
+};
+
+export type CitationSuggestResponse = {
+  spots: CitationSpot[];
+  total: number;
+  scanned_paragraphs: number;
+};
+
+/** 上传一篇论文，让 AI 指出哪些句子该补引用，并为每处给出候选文献。 */
+export async function suggestCitations(file: File): Promise<CitationSuggestResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  const response = await fetch(`${API_BASE_URL}/api/v1/citations/suggest`, {
+    method: "POST",
+    body: form,
+  });
+  if (!response.ok) {
+    throw new Error(await readError(response));
+  }
+  return (await response.json()) as CitationSuggestResponse;
+}

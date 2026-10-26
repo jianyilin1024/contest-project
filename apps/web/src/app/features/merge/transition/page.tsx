@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/components/Icons";
+import { ModeTabs } from "@/components/merge/ModeTabs";
 import { MarkdownPreview } from "@/components/MarkdownPreview";
 import {
   analyzeTransitions,
@@ -210,9 +211,9 @@ export default function TransitionPage() {
       <nav className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
         <Link href="/" className="transition hover:text-brand-600">首页</Link>
         <Icon name="chevronRight" className="h-3 w-3" />
-        <Link href="/features" className="transition hover:text-brand-600">功能分区</Link>
+        <Link href="/features" className="transition hover:text-brand-600">多部分整合</Link>
         <Icon name="chevronRight" className="h-3 w-3" />
-        <span className="font-medium text-slate-700">过渡段落生成</span>
+        <span className="font-medium text-slate-700">过渡段落</span>
       </nav>
 
       <header className="mt-6 flex flex-wrap items-start gap-5">
@@ -220,16 +221,12 @@ export default function TransitionPage() {
           <Icon name="link" className="h-7 w-7" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-md bg-slate-900/5 px-2 py-0.5 text-xs font-bold text-slate-500">F3</span>
-            <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">可用</span>
-          </div>
-          <h1 className="mt-2.5 text-3xl font-extrabold tracking-tight text-slate-900">过渡段落生成</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-500">
-            AI 先判断哪些章节之间缺少衔接，再给出多个风格的备选段落。你可以逐处勾选采用或不采用，确认后再导出。
-          </p>
+          <h1 className="mt-2.5 text-3xl font-extrabold tracking-tight text-slate-900">过渡段落</h1>
+          <p className="mt-2 max-w-3xl text-sm text-slate-500">章节直接拼接会产生语义断层。这里先定位断点，再给出多个语气的承接段落，可逐处勾选采用、换个说法或自己改写。</p>
         </div>
       </header>
+
+      <ModeTabs active="transition" />
 
       {/* 输入 */}
       <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
