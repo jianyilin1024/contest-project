@@ -1,0 +1,119 @@
+开源项目引用与借鉴说明
+================================================================
+项目名称：大肥鱼小组工作台
+版本：v1.1.0（提交 f73d69f）
+编写日期：2026-10-29
+
+本文件用于说明本项目在研发过程中参考过的开源项目，供评审核查。
+结论先行：本项目**未复制任何第三方仓库的源代码文件**，涉及的参考
+集中在两个方面——文献检索接口的调用方式、以及"去 AI 味"的写作建议。
+所有功能均为自行实现，相关位置的代码注释中已标注参考来源。
+
+
+一、直接借鉴的两个仓库
+----------------------------------------------------------------
+以下两个仓库对本项目的文献检索模块有实质性帮助。我们参考的是它们
+**调用学术数据源的接口用法与字段结构**，代码基于 httpx 自行编写。
+
+1. pyalex — OpenAlex 的 Python 客户端
+   仓库：https://github.com/J535D165/pyalex
+   许可证：MIT
+
+   借鉴内容：
+   - OpenAlex Works 接口的请求参数组合（search / per_page / mailto）
+   - 响应字段的含义与位置：biblio 中的卷、期、起止页，
+     authorships[].author.display_name，以及用倒排索引
+     （abstract_inverted_index）存储摘要、需要自行还原成文本
+   - 请求时携带 mailto 进入"礼貌池"以提升配额的做法
+
+   借鉴方式：按其公开用法自行实现，未引入该依赖，未复制源码。
+   对应实现：apps/api/app/services/references/sources.py
+            中的 search_openalex()
+
+2. habanero — Crossref 的 Python 客户端
+   仓库：https://github.com/sckott/habanero
+   许可证：MIT
+
+   借鉴内容：
+   - 按 DOI 查询单条记录的接口路径与参数
+   - Crossref 返回结果的字段映射：author 的 family / given、
+     container-title、volume / issue / page、
+     issued.date-parts 中的年份提取
+
+   借鉴方式：自行实现，未引入该依赖，未复制源码。
+   对应实现：apps/api/app/services/references/sources.py
+            中的 lookup_crossref()
+
+说明：上述两个库均未出现在 requirements.txt 中，可据此核查本项目
+确实没有把它们作为依赖引入。
+
+
+二、设计理念参考（未使用其代码）
+----------------------------------------------------------------
+3. bibverify — BibTeX 文献核验工具
+   仓库：https://github.com/Hylouis233/bibverify
+   许可证：MIT
+
+   参考的是它的基本主张——"引用的文献必须可核验"。
+   本项目据此设计了一条硬性约束：模型给出的每条引用必须附带来源
+   链接，且该链接必须落在本轮检索结果之内（同域名或完全一致），
+   否则整条丢弃。这条规则用于杜绝模型编造文献。
+   对应实现：apps/api/app/services/documents/data_assistant.py
+
+
+三、调研参考（仅阅读公开说明，未使用其代码）
+----------------------------------------------------------------
+"去 AI 味"功能的规则设计，参考了以下开源项目的公开说明。
+我们只借鉴了思路，特征取舍与实现均为自行完成，未使用其代码或数据。
+
+4.  lieflat-less-ai-tone   去 AI 味 skill，公开了基于大规模语料的特征统计
+    https://github.com/larashero3-dotcom/lieflat-less-ai-tone
+5.  shuorenhua             "先说人话"，主张先保事实再谈风格
+    https://github.com/MrGeDiao/shuorenhua
+6.  blader/humanizer       26 条 AI 写作特征模式
+    https://github.com/blader/humanizer
+7.  op7418/Humanizer-zh    上述项目的中文版本
+    https://github.com/op7418/Humanizer-zh
+8.  AIScientists-Dev/academic-humanizer  面向论文与基金申请
+    https://github.com/AIScientists-Dev/academic-humanizer
+9.  Nanako0129/sepia       通用 De-AI 写作技能
+    https://github.com/Nanako0129/sepia
+10. YottaMeta/yotta-humanize  规则引擎实现
+    https://github.com/YottaMeta/yotta-humanize
+11. hylarucoder/ai-flavor-remover  早期中文方案
+    https://github.com/hylarucoder/ai-flavor-remover
+
+上述项目的完整调研记录见 docs/去AI味方案调研.md。
+对应实现：apps/api/app/services/documents/deai.py
+
+
+四、其他说明
+----------------------------------------------------------------
+1. 本项目使用的第三方依赖（FastAPI、Next.js、python-docx 等）
+   均为常规开源库，通过包管理器引入，遵循各自的许可证，
+   清单见 apps/api/requirements.txt 与 apps/web/package.json。
+
+2. 项目中未打包、未内嵌上述任何被参考仓库的源码或数据文件。
+
+3. 与学术数据源的关系：OpenAlex、Crossref、Open Library 提供公开的
+   元数据接口，本项目以只读方式调用，未批量抓取或转存其数据。
+   生成的引用条目均保留 DOI 或来源链接，以便回溯核实。
+
+4. 如评审需要更细的核查材料，可提供逐文件的实现对照说明。
+
+
+五、主要参考链接汇总
+----------------------------------------------------------------
+https://github.com/J535D165/pyalex
+https://github.com/sckott/habanero
+https://github.com/Hylouis233/bibverify
+https://github.com/larashero3-dotcom/lieflat-less-ai-tone
+https://github.com/MrGeDiao/shuorenhua
+https://github.com/blader/humanizer
+https://github.com/op7418/Humanizer-zh
+https://github.com/AIScientists-Dev/academic-humanizer
+https://github.com/Nanako0129/sepia
+https://github.com/YottaMeta/yotta-humanize
+https://github.com/hylarucoder/ai-flavor-remover
+
+（本文件结束）
